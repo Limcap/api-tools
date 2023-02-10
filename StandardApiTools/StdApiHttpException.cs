@@ -6,9 +6,9 @@ namespace StandardApiTools {
 
         public StdApiHttpException(HttpStatusCode status, string message=null, object details = null, Exception ex = null)
         : base(message, ex) {
-            Result = new StdResult((int)status, message??status.ToString(), details);
+            Result = new StdApiResult((int)status, message??status.ToString(), details);
         }
 
-        public StdResult Result { get; }
+        public StdApiResult Result { get; }
     }
 }

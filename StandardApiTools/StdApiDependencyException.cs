@@ -11,7 +11,7 @@ namespace StandardApiTools {
 
         public StdApiDependencyException(string message, object details=null, Exception innerException=null)
         : base(message,innerException) {
-            _Result = new StdResult((int)HttpStatusCode.FailedDependency, message, details);
+            _Result = new StdApiResult((int)HttpStatusCode.FailedDependency, message, details);
         }
 
 
@@ -42,8 +42,8 @@ namespace StandardApiTools {
         const string ExternalErrorMessage = "A chamada para um serviço externo falhou.";
         public readonly StdApiResponse Response;
         public readonly List<SpecialCase> SpecialCases;
-        public StdResult Result { get => IsManuallyCreated ? _Result : GetResult(); }
-        private StdResult _Result;
+        public StdApiResult Result { get => IsManuallyCreated ? _Result : GetResult(); }
+        private StdApiResult _Result;
         //public int Status => Result.Status;
         public override string Message => Result.Message;
         //public object Details => Result.Data;
@@ -53,7 +53,7 @@ namespace StandardApiTools {
 
 
 
-        private StdResult GetResult() {
+        private StdApiResult GetResult() {
             if (Response?.IsSuccess == true) return null;
             SpecialCase? c = FindCase();
             if (!IsManuallyCreated) {
@@ -70,12 +70,12 @@ namespace StandardApiTools {
                     Data = Response.ContentAsString,
                     Uri = Response.RequestUri
                 };
-                return new StdResult(status, message, details);
+                return new StdApiResult(status, message, details);
             }
             else {
                 var message = c != null ? c.Value.Message?.Invoke(null) : _Result.Message;
                 var details = c != null ? c.Value.Details?.Invoke(null) : _Result.Data;
-                return new StdResult((int)HttpStatusCode.FailedDependency, message, details);
+                return new StdApiResult((int)HttpStatusCode.FailedDependency, message, details);
             }
         }
 

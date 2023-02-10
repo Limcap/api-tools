@@ -4,7 +4,7 @@ using System;
 namespace StandardApiTools {
 
     /// <summary>
-    /// Filtro de execução de contexto que converte criar um <see cref="StdResult"/>
+    /// Filtro de execução de contexto que converte criar um <see cref="StdApiResult"/>
     /// para o contexto caso ele ainda tenha uma exceção não tratada.
     /// </summary>
     /// <remarks>
@@ -22,7 +22,7 @@ namespace StandardApiTools {
         public static void HandleExceptions(ActionExecutedContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
                 context.Exception = context.Exception is AggregateException ex1 && ex1.InnerExceptions.Count == 1 ? ex1.InnerExceptions[0] : context.Exception;
-                context.Result = StdResult.From(context.Exception);
+                context.Result = StdApiResult.From(context.Exception);
                 context.ExceptionHandled = true;
             }
         }
