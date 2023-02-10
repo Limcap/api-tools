@@ -6,9 +6,9 @@ using System.Text;
 using System;
 using Newtonsoft.Json;
 
-namespace StdResponseTools {
+namespace StandardApiTools {
 
-    public static class StdResponseExtensions {
+    public static class StdApiExtensions {
 
         /// <summary>
         /// Altera uma <see cref="HttpWebRequest"/> para ignorar o proxy em caso da URI

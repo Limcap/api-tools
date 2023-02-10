@@ -6,16 +6,16 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
-namespace StdResponseTools {
-    public class StdResponse {
+namespace StandardApiTools {
+    public class StdApiResponse {
 
-        public static StdResponse FromExternalService(HttpWebRequest req) {
+        public static StdApiResponse FromExternalService(HttpWebRequest req) {
             try {
                 var res = req.GetResponse();
-                return new StdResponse(req, res as HttpWebResponse);
+                return new StdApiResponse(req, res as HttpWebResponse);
             }
             catch (WebException ex) {
-                return new StdResponse(req, ex);
+                return new StdApiResponse(req, ex);
             }
         }
 
@@ -24,9 +24,9 @@ namespace StdResponseTools {
 
 
 
-        public static StdResponse FromExternalService(IRestRequest req, IRestClient client) {
+        public static StdApiResponse FromExternalService(IRestRequest req, IRestClient client) {
             var resp = client.Execute(req);
-            return new StdResponse(client, resp);
+            return new StdApiResponse(client, resp);
         }
 
 
@@ -34,16 +34,16 @@ namespace StdResponseTools {
 
 
 
-        public static StdResponse FromExternalService<T>(IRestClient client, IRestRequest req) {
+        public static StdApiResponse FromExternalService<T>(IRestClient client, IRestRequest req) {
             var resp = client.Execute(req);
-            return new StdResponse(client, resp);
+            return new StdApiResponse(client, resp);
         }
 
 
 
 
 
-
+        public readonly Exception Exception;
         public readonly object CommStatusSource;
         public readonly int CommStatusCode;
         public readonly string CommMessage;
@@ -68,7 +68,7 @@ namespace StdResponseTools {
 
 
 
-        public StdResponse(HttpWebRequest req, HttpWebResponse resp)
+        public StdApiResponse(HttpWebRequest req, HttpWebResponse resp)
         :this(req, resp, 0, null, "Sucess" ){}
 
 
@@ -76,14 +76,16 @@ namespace StdResponseTools {
 
 
 
-        private StdResponse(HttpWebRequest req, WebException ex)
-        :this(req, ex.Response, (int)ex.Status, ex.Status, ex.Message) {}
+        private StdApiResponse(HttpWebRequest req, WebException ex)
+        :this(req, ex.Response, (int)ex.Status, ex.Status, ex.Message) {
+            Exception = ex;
+        }
 
 
 
 
 
-        private StdResponse(
+        private StdApiResponse(
             HttpWebRequest req, WebResponse resp,
             int comStatusCode, object comStatusSource, string comStatusMessage
             ) {
@@ -114,7 +116,8 @@ namespace StdResponseTools {
 
 
 
-        private StdResponse(IRestClient client, IRestResponse resp) {
+        private StdApiResponse(IRestClient client, IRestResponse resp) {
+            Exception = resp.ErrorException;
             CommStatusCode = (int)resp.ResponseStatus;
             CommStatusSource = resp.ResponseStatus;
             CommMessage = resp.ErrorMessage;
@@ -168,9 +171,9 @@ namespace StdResponseTools {
 
 
 
-        public StdResponse ThrowOnError(params StdResponseException.SpecialCase[] customCases) {
+        public StdApiResponse ThrowOnError(params StdApiDependencyException.SpecialCase[] customCases) {
             if (IsSuccess) return this;
-            var ex = StdResponseException.From(this);
+            var ex = StdApiDependencyException.From(this);
             if (ex == null) return this;
             throw ex;
         }

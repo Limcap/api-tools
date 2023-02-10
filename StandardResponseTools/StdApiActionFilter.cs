@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 
-namespace StdResponseTools {
+namespace StandardApiTools {
 
     /// <summary>
-    /// Filtro de execução de contexto que converte criar um <see cref="StdResponseResult"/>
+    /// Filtro de execução de contexto que converte criar um <see cref="StdResult"/>
     /// para o contexto caso ele ainda tenha uma exceção não tratada.
     /// </summary>
     /// <remarks>
@@ -13,7 +13,7 @@ namespace StdResponseTools {
     /// <br/>2. Chamando o método estático <see cref="HandleExceptions"/> em um filtro já configurado.
     /// </remarks>
     /// indicadas por <see cref="ActionExecutedContext.Exception"/> e <see cref="ActionExecutedContext.ExceptionHandled"/>
-    public class StdResponseActionFilter: ActionFilterAttribute {
+    public class StdApiActionFilter: ActionFilterAttribute {
 
         /// <summary>
         /// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="EasyResponseResult(Exception)"/> caso
@@ -22,7 +22,7 @@ namespace StdResponseTools {
         public static void HandleExceptions(ActionExecutedContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
                 context.Exception = context.Exception is AggregateException ex1 && ex1.InnerExceptions.Count == 1 ? ex1.InnerExceptions[0] : context.Exception;
-                context.Result = StdResponseResult.From(context.Exception);
+                context.Result = StdResult.From(context.Exception);
                 context.ExceptionHandled = true;
             }
         }
