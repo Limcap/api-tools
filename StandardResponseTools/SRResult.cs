@@ -2,8 +2,6 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Newtonsoft.Json;
 using System.Runtime.Serialization;
 
 namespace StandardResponseTools {
@@ -17,7 +15,6 @@ namespace StandardResponseTools {
 
 
 
-    [DataContract]
     public class SRResult : IActionResult {
 
         public SRResult(int status, string message, object data = null) { 
@@ -32,11 +29,19 @@ namespace StandardResponseTools {
 
 
         public SRResult(Exception ex) {
-            if (ex is WebException wex)
+            if (ex is WebException wex) {
                 ex = new ExternalServiceException(wex);
-            if (ex is ISRReady aex) { Status = aex.Status; Message = aex.Message; Data = aex.Details; }
-            else { Status = 500; Message = "Ocorreu um erro não identificado durante o processamento.";
-                Data = ex.ToString(); }
+            }
+            if (ex is ISRReady aex) {
+                Status = aex.Status;
+                Message = aex.Message;
+                Data = aex.Details;
+            }
+            else {
+                Status = 500;
+                Message = "Ocorreu um erro não identificado durante o processamento.";
+                Data = new { Message = ex.Message, Data = ex.ToString() };
+            }
         }
 
 

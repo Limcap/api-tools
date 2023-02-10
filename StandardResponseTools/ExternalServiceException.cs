@@ -3,12 +3,11 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CustomCaseBuilder = System.ValueTuple<int, System.Func<bool, StandardResponseTools.CachedResponse>, System.Func<string, StandardResponseTools.CachedResponse>, System.Func<object, StandardResponseTools.CachedResponse>>;
 
 namespace StandardResponseTools {
 
     public class ExternalServiceException: Exception, ISRReady {
-
-
 
         private ExternalServiceException(int status, string message, object details) {
             Status = status;
@@ -21,9 +20,11 @@ namespace StandardResponseTools {
 
 
 
-        public ExternalServiceException(object details) {
+        public ExternalServiceException(object details, string message = null) {
             Status = (int)HttpStatusCode.FailedDependency;
-            _Message = DefaultMessage;
+            _Message = message != null
+                ? DefaultMessage + Environment.NewLine + message
+                : DefaultMessage;
             Details = details;
         }
 
@@ -32,36 +33,50 @@ namespace StandardResponseTools {
 
 
 
-        public ExternalServiceException(WebException ex, params CustomCase[] casos) {
-            bool foundCase = false;
-            var resp = new CachedResponse(ex.Response);
-            if(casos.Length>0) {
-                foreach (var caso in casos) {
-                    int status = resp.Status != null ? (int)resp.Status : (int)ex.Status;
-                    var conditionSatisfied = caso.Condition?.Invoke(resp) ?? true;
-                    //var isAnyProtocolError = ex.Status == WebExceptionStatus.ProtocolError && Enum.IsDefined(typeof(HttpStatusCode), caso.Status);
-                    var statusMach1 = caso.Status == 7 && Enum.IsDefined(typeof(HttpStatusCode), status);
-                    var statusMatch2 = caso.Status == status; 
-                    if (conditionSatisfied && (statusMach1 || statusMatch2)) {
-                        foundCase = true;
-                        Status = caso.Status;
-                        _Message = caso.Message?.Invoke(resp);
-                        Details = caso.Details?.Invoke(resp);//??resp.ContentAsString;
-                    }
-                }
-            }
-            if(!foundCase) {
-                Status = (int) HttpStatusCode.FailedDependency;
-                _Message = DefaultMessage;
-                Details = new {
-                    Status = resp.Status == null ? (int)ex.Status : (int)resp.Status,
-                    Description = resp.Status == null ? ex.Status.ToString() : resp.Status.ToString(),
-                    //Message = MensagemPadrao,
-                    Data = resp.ContentAsString,
-                    Uri = resp.Uri
-                };
-            }
+        public ExternalServiceException(WebException ex, string message = null) {
+            Status = (int)HttpStatusCode.FailedDependency;
+            _Message = message != null
+                ? DefaultMessage + Environment.NewLine + message
+                : DefaultMessage;
+            Details = DefaultDetailsFormat(new CachedResponse(ex));
         }
+
+
+
+
+
+
+        public ExternalServiceException(WebException ex, params CustomCase[] customCases) {
+            var cresp = new CachedResponse(ex);
+            CustomCase? c = FindCase(cresp, customCases);
+            Status = c != null ? c.Value.Status : (int)HttpStatusCode.FailedDependency;
+            _Message = c != null ? c.Value.Message?.Invoke(cresp) : DefaultMessage;
+            Details = c != null ? c.Value.Details?.Invoke(cresp) : DefaultDetailsFormat(cresp);
+        }
+        //public ExternalServiceException(WebException ex, params CustomCase[] casos) {
+        //    bool foundCase = false;
+        //    var resp = new CachedResponse(ex);
+        //    if(casos.Length>0) {
+        //        foreach (var caso in casos) {
+        //            int status = resp.HttpStatusCode != null ? (int)resp.HttpStatusCode : (int)ex.Status;
+        //            var conditionSatisfied = caso.Condition?.Invoke(resp) ?? true;
+        //            //var isAnyProtocolError = ex.Status == WebExceptionStatus.ProtocolError && Enum.IsDefined(typeof(HttpStatusCode), caso.Status);
+        //            var statusMach1 = caso.Status == 7 && Enum.IsDefined(typeof(HttpStatusCode), status);
+        //            var statusMatch2 = caso.Status == status; 
+        //            if (conditionSatisfied && (statusMach1 || statusMatch2)) {
+        //                foundCase = true;
+        //                Status = caso.Status;
+        //                _Message = caso.Message?.Invoke(resp);
+        //                Details = caso.Details?.Invoke(resp);
+        //            }
+        //        }
+        //    }
+        //    if(!foundCase) {
+        //        Status = (int) HttpStatusCode.FailedDependency;
+        //        _Message = DefaultMessage;
+        //        Details = DefaultDetailsFormat(resp);
+        //    }
+        //}
 
 
 
@@ -79,18 +94,19 @@ namespace StandardResponseTools {
 
 
 
-        public static void Assert(IRestResponse resp, params CustomCase[] casos) {
+        public static void Assert(IRestResponse resp, params CustomCase[] customCases) {
             if (isSucess(resp)) return;
             int status = resp.ResponseStatus == ResponseStatus.Completed ? (int)resp.StatusCode : (int)resp.ResponseStatus;
             string description = resp.ResponseStatus == ResponseStatus.Completed ? resp.StatusCode.ToString() : resp.ResponseStatus.ToString();
-            var cachedResponse = new CachedResponse(resp);
-            CustomCase? caso = findCase();
-            string message = caso != null ? caso?.Message?.Invoke(cachedResponse) : DefaultMessage;
-            object details = caso != null ? caso?.Details?.Invoke(cachedResponse) : new {
+            var cresp = new CachedResponse(resp);
+            CustomCase? caso = FindCase(cresp, customCases);
+            string message = caso != null ? caso?.Message?.Invoke(cresp) : DefaultMessage;
+            object details = caso != null ? caso?.Details?.Invoke(cresp) : new {
                 Status = status,
                 Description = description,
-                Data = cachedResponse.ContentAsString,
-                Uri = cachedResponse.Uri
+                Message = resp.ErrorMessage,
+                Data = cresp.ContentAsString,
+                Uri = cresp.Uri
             };
             throw new ExternalServiceException(status, message, details);
 
@@ -100,18 +116,79 @@ namespace StandardResponseTools {
 
 
 
-            CustomCase? findCase() {
-                if (casos.Length == 0) return null;
-                int status = resp.ResponseStatus == ResponseStatus.Completed ? (int)resp.StatusCode : (int)resp.ResponseStatus;
-                foreach (var caso in casos) {
-                    var conditionSatisfied = caso.Condition?.Invoke(cachedResponse) ?? true;
-                    var statusMatch1 = caso.Status == ((int)ResponseStatus.Completed) && Enum.IsDefined(typeof(HttpStatusCode), status);
-                    var statusMatch2 = caso.Status == status;
-                    if (conditionSatisfied && (statusMatch1 || statusMatch2)) return caso;
-                }
-                return null;
-            }
+            //CustomCase? findCase() {
+            //    if (casos.Length == 0) return null;
+            //    int status = resp.ResponseStatus == ResponseStatus.Completed ? (int)resp.StatusCode : (int)resp.ResponseStatus;
+            //    foreach (var caso in casos) {
+            //        var conditionSatisfied = caso.Condition?.Invoke(cresp) ?? true;
+            //        var statusMatch1 = caso.Status == ((int)ResponseStatus.Completed) && Enum.IsDefined(typeof(HttpStatusCode), status);
+            //        var statusMatch2 = caso.Status == status;
+            //        if (conditionSatisfied && (statusMatch1 || statusMatch2)) return caso;
+            //    }
+            //    return null;
+            //}
         }
+
+
+
+
+
+        static CustomCase? FindCase(CachedResponse cresp, CustomCase[] casos) {
+            if (casos.Length == 0) return null;
+            foreach (var caso in casos) {
+                var isMatch = caso.Status == cresp.CommStatusCode || caso.Status == (int?)cresp.HttpStatusCode;
+                var isConditionSatisfied = caso.Condition?.Invoke(cresp) ?? true;
+                if (isMatch && isConditionSatisfied) return caso;
+            }
+            return null;
+        }
+
+
+
+
+
+
+        object DefaultDetailsFormat(CachedResponse r) {
+            return new {
+                Status = r.HttpStatusCode != null ? (int)r.HttpStatusCode : r.CommStatusCode,
+                Description = r.HttpStatusCode != null ? r.HttpStatusCode.ToString() : r.CommStatusSource?.ToString(),
+                Message = r.CommMessage,
+                Data = r.ContentAsString,
+                Uri = r.Uri,
+            };
+        }
+
+        //object DefaultDetails(WebException ex, CachedResponse? cr = null){
+        //    var r = cr ?? new CachedResponse(ex);
+        //    return new {
+        //        Status = r.HttpStatusCode == null ? (int)ex.Status : (int)r.HttpStatusCode,
+        //        Description = r.HttpStatusCode == null ? ex.Status.ToString() : r.HttpStatusCode.ToString(),
+        //        Message = ex.Message,
+        //        Data = r.ContentAsString,
+        //        Uri = r.Uri,
+        //    };
+        //}
+
+
+
+
+        //public class WebExceptionDetails {
+        //    public WebExceptionDetails(WebException ex) {
+        //        CachedResponse = new CachedResponse(ex.Response);
+        //        var r = CachedResponse;
+        //        Status = r.Status == null ? (int)ex.Status : (int)r.Status;
+        //        Description = r.Status == null ? ex.Status.ToString() : r.Status.ToString();
+        //        Message = ex.Message;
+        //        Data = r.ContentAsString;
+        //        Uri = r.Uri;
+        //    }
+        //    public CachedResponse CachedResponse;
+        //    public int Status { get; set; }
+        //    public string Description { get; set; }
+        //    public string Message { get; set; }
+        //    public object Data { get; set; }
+        //    public string Uri { get; set; }
+        //}
 
 
 
@@ -159,6 +236,7 @@ namespace StandardResponseTools {
 
         public static Task<R> WrapAsync<R>(
             Func<R> func,
+            //params CustomCaseBuilder[] cases2,
             params (int status,
                 CustomCase.CaseCondition condition,
                 CustomCase.MessageBuilder message,
