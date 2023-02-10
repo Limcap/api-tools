@@ -4,12 +4,11 @@ using System.Net.Http;
 using System.Net;
 using System.Text;
 using System;
-using static StandardResponseTools.ExternalServiceException;
 using Newtonsoft.Json;
 
-namespace StandardResponseTools {
+namespace StdResponseTools {
 
-    public static class Extensions {
+    public static class StdResponseExtensions {
 
         /// <summary>
         /// Altera uma <see cref="HttpWebRequest"/> para ignorar o proxy em caso da URI
@@ -26,39 +25,12 @@ namespace StandardResponseTools {
 
 
 
-        /// <summary>
-        /// Transforma uma <see cref="WebException"/> em uma <see cref="ExternalServiceException"/>,
-        /// incluindo opcionais casos especiais.
-        /// </summary>
-        /// <param name="ex">Objeto fonte</param>
-        /// <param name="casos">Casos especiais</param>
-        public static ExternalServiceException AsServicoExternoException(this WebException ex, params Action<CustomCase>[] casos) {
-            var parsedCasos = CriarCasos(casos);
-            return new ExternalServiceException(ex, parsedCasos);
-
-            static CustomCase[] CriarCasos(Action<CustomCase>[] actions) {
-                var casos = new List<CustomCase>(actions.Length);
-                foreach (var action in actions) {
-                    var caso = new CustomCase();
-                    action(caso);
-                    casos.Add(caso);
-                }
-                return casos.ToArray();
-            }
-        }
-
-
-
-
-
 
         /// <summary>
         /// Obtém o conteúdo de uma WebResponse em bytes crus
         /// </summary>
         /// <param name="response">Objeto fonte</param>
         public static byte[] GetContentAsBytes(this WebResponse response) {
-            //using var rs = response.GetResponseStream();
-            //using var ms = new MemoryStream();
             var rs = response.GetResponseStream();
             var ms = new MemoryStream();
             rs.CopyTo(ms);
@@ -76,8 +48,6 @@ namespace StandardResponseTools {
         /// <param name="response">Objeto fonte</param>
         /// <param name="foceEncoding">Força a conversão da stream de bytes para string usando este encoding</param>
         public static string GetContentAsString(this WebResponse response, Encoding foceEncoding = null) {
-            //using var rs = response.GetResponseStream();
-            //using var sr = new StreamReader(rs);
             var encodingStr = (response as HttpWebResponse)?.ContentEncoding;
             var encoding = encodingStr == null ? null : Encoding.GetEncoding(encodingStr);
             encoding = foceEncoding ?? encoding;
@@ -97,7 +67,7 @@ namespace StandardResponseTools {
         /// caso ela seja do tipo <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T">Tipo da exceção desejada</typeparam>
-        public static T Pop<T>(this AggregateException ex) where T : Exception {
+        public static T Deaggregate<T>(this AggregateException ex) where T : Exception {
             return ex.InnerExceptions[0] is T ex2 ? ex2 : null;
         }
 
@@ -110,7 +80,7 @@ namespace StandardResponseTools {
         /// Retorna a primeira exceção interna caso o objeto seja uma <see cref="AggregateException"/>
         /// ou então retorna o próprio objeto.
         /// </summary>
-        public static Exception Pop(this Exception ex) {
+        public static Exception Deaggregate(this Exception ex) {
             return ex is AggregateException agg && agg.InnerExceptions.Count == 1 ? agg.InnerExceptions[0] : ex;
         }
 
@@ -136,6 +106,9 @@ namespace StandardResponseTools {
 
 
 
+
+
+
         public static Exception AddJsonBody(this HttpWebRequest req, object data) {
             try {
                 using (var sw = new StreamWriter(req.GetRequestStream())) {
@@ -147,7 +120,6 @@ namespace StandardResponseTools {
             catch(Exception ex) {
                 return ex;
             }
-
         }
     }
 }

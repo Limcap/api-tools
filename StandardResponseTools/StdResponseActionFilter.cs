@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 
-namespace StandardResponseTools {
+namespace StdResponseTools {
 
     /// <summary>
-    /// Filtro de execução de contexto que converte criar um <see cref="SRResult"/>
+    /// Filtro de execução de contexto que converte criar um <see cref="StdResponseResult"/>
     /// para o contexto caso ele ainda tenha uma exceção não tratada.
     /// </summary>
     /// <remarks>
@@ -13,16 +13,16 @@ namespace StandardResponseTools {
     /// <br/>2. Chamando o método estático <see cref="HandleExceptions"/> em um filtro já configurado.
     /// </remarks>
     /// indicadas por <see cref="ActionExecutedContext.Exception"/> e <see cref="ActionExecutedContext.ExceptionHandled"/>
-    public class SRActionFilter: ActionFilterAttribute {
+    public class StdResponseActionFilter: ActionFilterAttribute {
 
         /// <summary>
-        /// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="SRResult(Exception)"/> caso
+        /// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="EasyResponseResult(Exception)"/> caso
         /// exista uma exceção não tratada no contexto.
         /// </summary>
         public static void HandleExceptions(ActionExecutedContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
                 context.Exception = context.Exception is AggregateException ex1 && ex1.InnerExceptions.Count == 1 ? ex1.InnerExceptions[0] : context.Exception;
-                context.Result = new SRResult(context.Exception);
+                context.Result = StdResponseResult.From(context.Exception);
                 context.ExceptionHandled = true;
             }
         }

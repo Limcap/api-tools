@@ -6,16 +6,16 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
-namespace StandardResponseTools {
-    public class StandardResponse {
+namespace StdResponseTools {
+    public class StdResponse {
 
-        public static StandardResponse FromExternalService(HttpWebRequest req) {
+        public static StdResponse FromExternalService(HttpWebRequest req) {
             try {
                 var res = req.GetResponse();
-                return new StandardResponse(req, res as HttpWebResponse);
+                return new StdResponse(req, res as HttpWebResponse);
             }
             catch (WebException ex) {
-                return new StandardResponse(req, ex);
+                return new StdResponse(req, ex);
             }
         }
 
@@ -24,9 +24,9 @@ namespace StandardResponseTools {
 
 
 
-        public static StandardResponse FromExternalService(IRestRequest req, IRestClient client) {
+        public static StdResponse FromExternalService(IRestRequest req, IRestClient client) {
             var resp = client.Execute(req);
-            return new StandardResponse(client, resp);
+            return new StdResponse(client, resp);
         }
 
 
@@ -34,9 +34,9 @@ namespace StandardResponseTools {
 
 
 
-        public static StandardResponse FromExternalService<T>(IRestClient client, IRestRequest req) {
+        public static StdResponse FromExternalService<T>(IRestClient client, IRestRequest req) {
             var resp = client.Execute(req);
-            return new StandardResponse(client, resp);
+            return new StdResponse(client, resp);
         }
 
 
@@ -68,7 +68,7 @@ namespace StandardResponseTools {
 
 
 
-        public StandardResponse(HttpWebRequest req, HttpWebResponse resp)
+        public StdResponse(HttpWebRequest req, HttpWebResponse resp)
         :this(req, resp, 0, null, "Sucess" ){}
 
 
@@ -76,14 +76,14 @@ namespace StandardResponseTools {
 
 
 
-        private StandardResponse(HttpWebRequest req, WebException ex)
+        private StdResponse(HttpWebRequest req, WebException ex)
         :this(req, ex.Response, (int)ex.Status, ex.Status, ex.Message) {}
 
 
 
 
 
-        private StandardResponse(
+        private StdResponse(
             HttpWebRequest req, WebResponse resp,
             int comStatusCode, object comStatusSource, string comStatusMessage
             ) {
@@ -114,7 +114,7 @@ namespace StandardResponseTools {
 
 
 
-        private StandardResponse(IRestClient client, IRestResponse resp) {
+        private StdResponse(IRestClient client, IRestResponse resp) {
             CommStatusCode = (int)resp.ResponseStatus;
             CommStatusSource = resp.ResponseStatus;
             CommMessage = resp.ErrorMessage;
@@ -168,66 +168,11 @@ namespace StandardResponseTools {
 
 
 
-        public StandardResponse ThrowOnError(params SpecialCase[] customCases) {
+        public StdResponse ThrowOnError(params StdResponseException.SpecialCase[] customCases) {
             if (IsSuccess) return this;
-            var r = GetErrorResult(customCases);
-            if (r == null) return this;
-            throw new SRException(r.Status, r.Message, r.Data);
+            var ex = StdResponseException.From(this);
+            if (ex == null) return this;
+            throw ex;
         }
-
-
-
-
-
-
-        private SRResult GetErrorResult(params SpecialCase[] cases) {
-            if (this.IsSuccess) return null;
-            int status = this.HttpStatusCode == null ? (int)this.HttpStatusCode : this.CommStatusCode;
-            string description = this.HttpStatusCode == null ? this.HttpStatusCode.ToString() : this.CommStatusSource?.ToString();
-            SpecialCase? c = FindCase(cases);
-            string message = c != null ? c?.Message?.Invoke(this) : ExternalErrorMessage;
-            object details = c != null ? c?.Details?.Invoke(this) : new {
-                Status = status,
-                Description = description,
-                Message = this.CommMessage,
-                Data = this.ContentAsString,
-                Uri = this.RequestUri
-            };
-            return new SRResult(status, message, details);
-        }
-
-
-
-
-
-
-        private SpecialCase? FindCase(SpecialCase[] casos) {
-            if (casos.Length == 0) return null;
-            foreach (var caso in casos) {
-                var isMatch = caso.Status == this.CommStatusCode || caso.Status == (int?)this.HttpStatusCode;
-                var isConditionSatisfied = caso.Condition?.Invoke(this) ?? true;
-                if (isMatch && isConditionSatisfied) return caso;
-            }
-            return null;
-        }
-
-
-
-
-
-
-        public struct SpecialCase {
-            public int Status;
-            public Func<StandardResponse, bool> Condition;
-            public Func<StandardResponse, string> Message;
-            public Func<StandardResponse, object> Details;
-        }
-
-
-
-
-
-
-        const string ExternalErrorMessage = "A chamada para um serviço externo falhou.";
     }
 }
