@@ -1,27 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
-    public class StdApiDependencyException: Exception, IProduceStdApiResult {
+    public class StdApiWebException: Exception, IProduceStdApiResult {
 
-        public StdApiDependencyException(string message, object details=null, Exception innerException=null)
-        : base(message,innerException) {
-            _Result = new StdApiResult((int)HttpStatusCode.FailedDependency, message, details);
-        }
-
-
-
-
-
-
-        public static StdApiDependencyException From(StdApiResponse response) {
+        public static StdApiWebException From(StdApiResponse response, string message = null) {
             if (response.IsSuccess) return null;
-            return new StdApiDependencyException(response);
+            var ex = new StdApiWebException(response, message);
+            return ex;
         }
 
 
@@ -29,24 +22,44 @@ namespace StandardApiTools {
 
 
 
-        private StdApiDependencyException(StdApiResponse response)
-        : base(ExternalErrorMessage, response.Exception) {
-            this.Response = response;
+        public StdApiWebException(string message, object details = null, Exception innerException = null)
+        : base(message, innerException) {
+            _isManuallyCreated = true;
+            _result = new StdApiResult((int)HttpStatusCode.FailedDependency, message, details);
         }
 
 
 
 
 
-        private readonly bool IsManuallyCreated;
-        const string ExternalErrorMessage = "A chamada para um serviço externo falhou.";
+
+        private StdApiWebException(StdApiResponse response, string message = null)
+        : base(_defaultMessage, response.Exception) {
+            Response = response;
+            _additionResultMessage = message.TrimToNull();
+        }
+
+
+
+
+
+
         public readonly StdApiResponse Response;
-        public readonly List<SpecialCase> SpecialCases;
-        public StdApiResult Result { get => IsManuallyCreated ? _Result : GetResult(); }
-        private StdApiResult _Result;
-        //public int Status => Result.Status;
+        public readonly List<SpecialCase> SpecialCases = new List<SpecialCase>();
+
+        private readonly bool _isManuallyCreated;
+        private StdApiResult _result;
+
+        private readonly string _additionResultMessage;
+        const string _defaultMessage = "A chamada para um serviço externo falhou.";
+
+
+
+
+
+
         public override string Message => Result.Message;
-        //public object Details => Result.Data;
+        public StdApiResult Result { get => _isManuallyCreated ? _result : GetResult(); }
 
 
 
@@ -56,14 +69,14 @@ namespace StandardApiTools {
         private StdApiResult GetResult() {
             if (Response?.IsSuccess == true) return null;
             SpecialCase? c = FindCase();
-            if (!IsManuallyCreated) {
+            if (!_isManuallyCreated) {
                 var status = c != null ? c.Value.Status : (int)HttpStatusCode.FailedDependency;
-                var message = c != null ? c.Value.Message?.Invoke(Response) : ExternalErrorMessage;
+                var message = c != null ? c.Value.Message?.Invoke(Response) : _defaultMessage.Join(_additionResultMessage);
                 var details = c != null ? c.Value.Details?.Invoke(Response) : new {
-                    Status = Response.HttpStatusCode == null
+                    Status = Response.HttpStatusCode != null
                         ? (int)Response.HttpStatusCode
                         : Response.CommStatusCode,
-                    Description = Response.HttpStatusCode == null
+                    Description = Response.HttpStatusCode != null
                         ? Response.HttpStatusCode.ToString()
                         : Response.CommStatusSource?.ToString(),
                     Message = Response.CommMessage,
@@ -73,8 +86,8 @@ namespace StandardApiTools {
                 return new StdApiResult(status, message, details);
             }
             else {
-                var message = c != null ? c.Value.Message?.Invoke(null) : _Result.Message;
-                var details = c != null ? c.Value.Details?.Invoke(null) : _Result.Data;
+                var message = c != null ? c.Value.Message?.Invoke(null) : _result.Message;
+                var details = c != null ? c.Value.Details?.Invoke(null) : _result.Data;
                 return new StdApiResult((int)HttpStatusCode.FailedDependency, message, details);
             }
         }
@@ -85,9 +98,9 @@ namespace StandardApiTools {
 
 
         private SpecialCase? FindCase() {
-            if (SpecialCases.Count == 0) return null;
-            var currentStatus = IsManuallyCreated
-                ? _Result.Status
+            if (SpecialCases == null || SpecialCases.Count == 0) return null;
+            var currentStatus = _isManuallyCreated
+                ? _result.Status
                 : Response?.CommStatusCode ?? (int?)Response.HttpStatusCode;
             foreach (var caso in SpecialCases) {
                 var isMatch = caso.Status == currentStatus;
@@ -114,18 +127,35 @@ namespace StandardApiTools {
 
 
 
+        public static Task<R> HandleAsync<R>(Func<R> function, params Action<SpecialCase>[] caseBuilders) {
+            return Task.Run(() => Handle(function, BuildCases(caseBuilders)));
+        }
 
-        public static R SetSpecialCases<R>(
-            Func<R> function,
-            SpecialCase[] cases
-        ) {
+
+
+
+        public static Task<R> HandleAsync<R>(Func<R> function, params SpecialCase[] cases) {
+            return Task.Run(() => Handle(function, cases));
+        }
+
+
+
+
+        public static R Handle<R>(Func<R> function, Action<SpecialCase>[] caseBuilders) {
+            return Handle(function, BuildCases(caseBuilders));
+        }
+
+
+
+
+        public static R Handle<R>(Func<R> function, SpecialCase[] cases) {
             try {
                 return function();
             }
             catch (Exception ex) {
-                if (ex.Deaggregate() is StdApiDependencyException srex) {
-                    srex.SpecialCases.AddRange(cases);
-                    throw srex;
+                if (ex.Deaggregate() is StdApiWebException apiEx) {
+                    apiEx.SpecialCases.AddRange(cases);
+                    throw apiEx;
                 }
                 else throw;
             }
@@ -134,28 +164,13 @@ namespace StandardApiTools {
 
 
 
-
-
-        public static Task<R> SetSpecialCasesAsync<R>(
-            Func<R> function,
-            params Action<SpecialCase>[] caseBuilders
-        ) {
-            return Task.Run(() => {
-                try {
-                    return function();
-                }
-                catch (Exception ex) {
-                    if (ex.Deaggregate() is StdApiDependencyException srex) {
-                        foreach (var propertySetter in caseBuilders) {
-                            var c = new SpecialCase();
-                            propertySetter(c);
-                            srex.SpecialCases.Add(c);
-                        }
-                        throw;
-                    }
-                    else throw;
-                }
-            });
+        private static SpecialCase[] BuildCases(Action<SpecialCase>[] caseBuilders) {
+            var array = new SpecialCase[caseBuilders.Length];
+            for (int i = 0; i < caseBuilders.Length; i++) {
+                array[i] = new SpecialCase();
+                caseBuilders[i](array[i]);
+            }
+            return array;
         }
     }
 }

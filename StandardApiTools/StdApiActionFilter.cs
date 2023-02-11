@@ -21,11 +21,14 @@ namespace StandardApiTools {
         /// </summary>
         public static void HandleExceptions(ActionExecutedContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
-                context.Exception = context.Exception is AggregateException ex1 && ex1.InnerExceptions.Count == 1 ? ex1.InnerExceptions[0] : context.Exception;
+                context.Exception = context.Exception.Deaggregate();
                 context.Result = StdApiResult.From(context.Exception);
                 context.ExceptionHandled = true;
             }
         }
+
+
+
 
         public override void OnActionExecuted(ActionExecutedContext context) {
             HandleExceptions(context);

@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System;
 using Newtonsoft.Json;
+using Microsoft.OpenApi.Expressions;
 
 namespace StandardApiTools {
 
@@ -23,9 +24,6 @@ namespace StandardApiTools {
 
 
 
-
-
-
         /// <summary>
         /// Obtém o conteúdo de uma WebResponse em bytes crus
         /// </summary>
@@ -36,8 +34,6 @@ namespace StandardApiTools {
             rs.CopyTo(ms);
             return ms.ToArray();
         }
-
-
 
 
 
@@ -60,8 +56,6 @@ namespace StandardApiTools {
 
 
 
-
-
         /// <summary>
         /// Retorna somente a primeira exceção de uma <see cref="AggregateException"/>
         /// caso ela seja do tipo <typeparamref name="T"/>.
@@ -74,8 +68,6 @@ namespace StandardApiTools {
 
 
 
-
-
         /// <summary>
         /// Retorna a primeira exceção interna caso o objeto seja uma <see cref="AggregateException"/>
         /// ou então retorna o próprio objeto.
@@ -83,8 +75,6 @@ namespace StandardApiTools {
         public static Exception Deaggregate(this Exception ex) {
             return ex is AggregateException agg && agg.InnerExceptions.Count == 1 ? agg.InnerExceptions[0] : ex;
         }
-
-
 
 
 
@@ -107,8 +97,6 @@ namespace StandardApiTools {
 
 
 
-
-
         public static Exception AddJsonBody(this HttpWebRequest req, object data) {
             try {
                 using (var sw = new StreamWriter(req.GetRequestStream())) {
@@ -120,6 +108,30 @@ namespace StandardApiTools {
             catch(Exception ex) {
                 return ex;
             }
+        }
+
+
+
+
+        public static string TrimToNull(this string str) {
+            str = str?.Trim();
+            return string.IsNullOrEmpty(str) ? null : str;
+        }
+
+
+
+
+        public static string Join(this string before, string after) {
+            return Join(before, Environment.NewLine, after);
+        }
+
+
+
+
+        public static string Join(this string before, string separator, string after) {
+            if (before == null) return after;
+            if (after == null) return before;
+            return before + separator + after;
         }
     }
 }

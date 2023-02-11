@@ -5,11 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace StandardApiTools {
     public class StdApiResponse {
 
-        public static StdApiResponse FromExternalService(HttpWebRequest req) {
+        public static Task<StdApiResponse> FromAsync(HttpWebRequest req) {
+            return Task.Run(() => From(req));
+        }
+
+
+
+
+        public static StdApiResponse From(HttpWebRequest req) {
             try {
                 var res = req.GetResponse();
                 return new StdApiResponse(req, res as HttpWebResponse);
@@ -22,23 +30,17 @@ namespace StandardApiTools {
 
 
 
-
-
-        public static StdApiResponse FromExternalService(IRestRequest req, IRestClient client) {
-            var resp = client.Execute(req);
-            return new StdApiResponse(client, resp);
+        public static Task<StdApiResponse> FromAsync(IRestRequest req, IRestClient client) {
+            return Task.Run(()=>From(req,client));
         }
 
 
 
 
-
-
-        public static StdApiResponse FromExternalService<T>(IRestClient client, IRestRequest req) {
+        public static StdApiResponse From(IRestRequest req, IRestClient client) {
             var resp = client.Execute(req);
             return new StdApiResponse(client, resp);
         }
-
 
 
 
@@ -66,12 +68,8 @@ namespace StandardApiTools {
 
 
 
-
-
         public StdApiResponse(HttpWebRequest req, HttpWebResponse resp)
         :this(req, resp, 0, null, "Sucess" ){}
-
-
 
 
 
@@ -84,14 +82,13 @@ namespace StandardApiTools {
 
 
 
-
         private StdApiResponse(
             HttpWebRequest req, WebResponse resp,
             int comStatusCode, object comStatusSource, string comStatusMessage
             ) {
-            var CommStatusCode = comStatusCode;
-            var CommStatusSource = comStatusSource;
-            var CommMessage = comStatusMessage;
+            CommStatusCode = comStatusCode;
+            CommStatusSource = comStatusSource;
+            CommMessage = comStatusMessage;
             RequestUri = req.RequestUri;
             if (resp is null) return;
             ContentLength = resp.ContentLength;
@@ -110,8 +107,6 @@ namespace StandardApiTools {
             ContentAsString = GetContentAsString(resp);
             resp.Dispose();
         }
-
-
 
 
 
@@ -139,8 +134,6 @@ namespace StandardApiTools {
 
 
 
-
-
         /// <summary>
         /// Retorna o conteúdo de uma WebResponse no formato string.
         /// </summary>
@@ -160,8 +153,6 @@ namespace StandardApiTools {
 
 
 
-
-
         private static T? TryOrNull<T>(Func<T> get) where T : struct {
             try { return get(); } catch { return null; }
         }
@@ -169,11 +160,20 @@ namespace StandardApiTools {
 
 
 
-
-
-        public StdApiResponse ThrowOnError(params StdApiDependencyException.SpecialCase[] customCases) {
+        public StdApiResponse ThrowError(params StdApiWebException.SpecialCase[] specialCases) {
             if (IsSuccess) return this;
-            var ex = StdApiDependencyException.From(this);
+            var ex = StdApiWebException.From(this);
+            ex.SpecialCases.AddRange(specialCases);
+            if (ex == null) return this;
+            throw ex;
+        }
+
+
+
+
+        public StdApiResponse ThrowError(string message) {
+            if (IsSuccess) return this;
+            var ex = StdApiWebException.From(this, message);
             if (ex == null) return this;
             throw ex;
         }

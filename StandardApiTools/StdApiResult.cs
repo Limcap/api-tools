@@ -12,12 +12,11 @@ namespace StandardApiTools {
 
 
 
-
-
     public class StdApiResult<T> : StdApiResult {
         public StdApiResult(int status, string message, T data) : base(status, message, data) { }
         public new T Data => (T) base.Data;
     }
+
 
 
 
@@ -34,10 +33,8 @@ namespace StandardApiTools {
 
 
 
-
-
         public static StdApiResult From(Exception ex) {
-            if (ex is StdApiDependencyException erex) {
+            if (ex is StdApiWebException erex) {
                 return erex.Result;
             }
             if (ex is IProduceStdApiResult aex) {
@@ -53,12 +50,9 @@ namespace StandardApiTools {
 
 
 
-
         public readonly int Status;
         public string Message { get; private set; }
         public object Data { get; private set; }
-
-
 
 
 
