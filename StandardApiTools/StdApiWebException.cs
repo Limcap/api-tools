@@ -115,20 +115,71 @@ namespace StandardApiTools {
 
 
 
+        //public static Task<R> HandleAsync<R>(Func<R> function, params Action<SpecialCase>[] caseBuilders) {
+        //    return Task.Run(() => Handle(function, BuildCases(caseBuilders)));
+        //}
 
-        public struct SpecialCase {
-            public int Status;
-            public Func<StdApiResponse, bool> Condition;
-            public Func<StdApiResponse, string> Message;
-            public Func<StdApiResponse, object> Details;
-        }
 
+
+
+        //public static Task<R> HandleAsync<R>(Func<R> function, params SpecialCase[] cases) {
+        //    return Task.Run(() => Handle(function, cases));
+        //}
+
+
+
+
+        //public static R Handle<R>(Func<R> function, Action<SpecialCase>[] caseBuilders) {
+        //    return Handle(function, BuildCases(caseBuilders));
+        //}
+
+
+
+
+        //public static R Handle<R>(Func<R> function, SpecialCase[] cases) {
+        //    try {
+        //        return function();
+        //    }
+        //    catch (Exception ex) {
+        //        if (ex.Deaggregate() is StdApiWebException apiEx) {
+        //            apiEx.SpecialCases.AddRange(cases);
+        //            throw apiEx;
+        //        }
+        //        else throw;
+        //    }
+        //}
+
+
+
+
+        //private static SpecialCase[] BuildCases(Action<SpecialCase>[] caseBuilders) {
+        //    var array = new SpecialCase[caseBuilders.Length];
+        //    for (int i = 0; i < caseBuilders.Length; i++) {
+        //        array[i] = new SpecialCase();
+        //        caseBuilders[i](array[i]);
+        //    }
+        //    return array;
+        //}
+
+
+
+
+        //public static SpecialCase Caso(int status, SpecialCase.M messageBuilder) {
+        //    return new SpecialCase() { Status = status, Message = messageBuilder };
+        //}
 
 
 
 
         public static Task<R> HandleAsync<R>(Func<R> function, params Action<SpecialCase>[] caseBuilders) {
             return Task.Run(() => Handle(function, BuildCases(caseBuilders)));
+        }
+
+
+
+
+        public static Task<R> HandleAsync<R>(Func<R> function, params Func<SpecialCase>[] caseBuilders) {
+            return Task.Run(() => Handle(function, caseBuilders.Select(c => c()).ToArray()));
         }
 
 
@@ -171,6 +222,54 @@ namespace StandardApiTools {
                 caseBuilders[i](array[i]);
             }
             return array;
+        }
+
+
+
+
+        public struct SpecialCase {
+
+            public SpecialCase(int status, C condition, M message, D details) {
+                Status = status;
+                Condition = condition;
+                Message = message;
+                Details = details;
+            }
+            public SpecialCase(int status, M message) : this(status, null, message, null) { }
+            public SpecialCase(int status, C condition, M message) : this(status, condition, message, null) { }
+            public SpecialCase(int status, M message, D details) : this(status, null, message, details) { }
+
+
+
+
+            public int Status;
+            public C Condition;
+            public M Message;
+            public D Details;
+            //public Func<StdApiResponse, bool> Condition;
+            //public Func<StdApiResponse, string> Message;
+            //public Func<StdApiResponse, object> Details;
+            public delegate bool C(StdApiResponse r);
+            public delegate string M(StdApiResponse r);
+            public delegate object D(StdApiResponse r);
+
+
+
+
+            public static class StaticImports {
+                public static SpecialCase Case(int status, C condition, M message, D details) {
+                    return new SpecialCase(status, condition, message, details);
+                }
+                public static SpecialCase Case(int status, C condition, M message) {
+                    return new SpecialCase(status, condition, message, null);
+                }
+                public static SpecialCase Case(int status, M message, D details) {
+                    return new SpecialCase(status, null, message, details);
+                }
+                public static SpecialCase Case(int status, M message) {
+                    return new SpecialCase(status, null, message, null);
+                }
+            }
         }
     }
 }
