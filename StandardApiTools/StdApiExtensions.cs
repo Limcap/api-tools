@@ -5,7 +5,8 @@ using System.Net;
 using System.Text;
 using System;
 using Newtonsoft.Json;
-using Microsoft.OpenApi.Expressions;
+using System.Threading.Tasks;
+using RestSharp;
 
 namespace StandardApiTools {
 
@@ -132,6 +133,29 @@ namespace StandardApiTools {
             if (before == null) return after;
             if (after == null) return before;
             return before + separator + after;
+        }
+
+
+
+
+        public static Task<StdApiResponse> GetStdApiResponseAsync(this HttpWebRequest req) {
+            return StdApiResponse.FromAsync(req);
+        }
+
+        public static StdApiResponse GetStdApiResponse(this HttpWebRequest req) {
+            return StdApiResponse.From(req);
+        }
+
+        public static Task<StdApiResponse> GetStdApiResponseAsync(this IRestClient client, IRestRequest req) {
+            return StdApiResponse.FromAsync(req, client);
+        }
+
+        public static StdApiResponse GetStdApiResponse(this IRestClient client, IRestRequest req) {
+            return StdApiResponse.From(req, client);
+        }
+
+        public static T ApplySpecialCase<T>(this Func<T> func, StdApiWebException.SpecialCase[] cases) {
+            return StdApiWebException.Handle(func, cases);
         }
     }
 }

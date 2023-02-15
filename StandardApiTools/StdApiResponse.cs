@@ -8,10 +8,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
+
     public class StdApiResponse {
 
-        public static Task<StdApiResponse> FromAsync(HttpWebRequest req) {
-            return Task.Run(() => From(req));
+        public static async Task<StdApiResponse> FromAsync(HttpWebRequest req) {
+            try {
+                var res = await req.GetResponseAsync();
+                return new StdApiResponse(req, res as HttpWebResponse);
+            }
+            catch (WebException ex) {
+                return new StdApiResponse(req, ex);
+            }
         }
 
 
@@ -30,8 +37,9 @@ namespace StandardApiTools {
 
 
 
-        public static Task<StdApiResponse> FromAsync(IRestRequest req, IRestClient client) {
-            return Task.Run(()=>From(req,client));
+        public static async Task<StdApiResponse> FromAsync(IRestRequest req, IRestClient client) {
+            var resp = await client.ExecuteAsync(req);
+            return new StdApiResponse(client, resp);
         }
 
 
@@ -160,21 +168,29 @@ namespace StandardApiTools {
 
 
 
-        public StdApiResponse ThrowError(params StdApiWebException.SpecialCase[] specialCases) {
-            if (IsSuccess) return this;
+        public void ThrowError() {
+            if (IsSuccess) return;
+            throw StdApiWebException.From(this);
+        }
+
+
+
+
+        public void ThrowError(params StdApiWebException.SpecialCase[] specialCases) {
+            if (IsSuccess) return;
             var ex = StdApiWebException.From(this);
             ex.SpecialCases.AddRange(specialCases);
-            if (ex == null) return this;
+            if (ex == null) return;
             throw ex;
         }
 
 
 
 
-        public StdApiResponse ThrowError(string message) {
-            if (IsSuccess) return this;
+        public void ThrowError(string message) {
+            if (IsSuccess) return;
             var ex = StdApiWebException.From(this, message);
-            if (ex == null) return this;
+            if (ex == null) return;
             throw ex;
         }
     }

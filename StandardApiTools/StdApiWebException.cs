@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.VisualBasic;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
-    public class StdApiWebException: Exception, IProduceStdApiResult {
+    public partial class StdApiWebException: Exception, IProduceStdApiResult {
 
         public static StdApiWebException From(StdApiResponse response, string message = null) {
             if (response.IsSuccess) return null;
@@ -104,7 +101,6 @@ namespace StandardApiTools {
                 : Response?.CommStatusCode ?? (int?)Response.HttpStatusCode;
             foreach (var caso in SpecialCases) {
                 var isMatch = caso.Status == currentStatus;
-                //var isMatch = caso.Status == Response.CommStatusCode || caso.Status == (int?)Response.HttpStatusCode;
                 var isConditionSatisfied = caso.Condition?.Invoke(Response) ?? true;
                 if (isMatch && isConditionSatisfied) return caso;
             }
@@ -115,111 +111,77 @@ namespace StandardApiTools {
 
 
 
-        //public static Task<R> HandleAsync<R>(Func<R> function, params Action<SpecialCase>[] caseBuilders) {
-        //    return Task.Run(() => Handle(function, BuildCases(caseBuilders)));
-        //}
 
+        public static R Handle<R>(Func<R> function, params Func<SpecialCase>[] caseFetchers) {
+            return _HandleSync(function, _AssembleCases(caseFetchers));
+        }
 
+        public static R Handle<R>(Func<R> function, params Action<SpecialCase>[] caseMolders) {
+            return _HandleSync(function, _AssembleCases(caseMolders));
+        }
 
+        public static R Handle<R>(Func<R> function, params SpecialCase[] cases) {
+            return _HandleSync(function, cases);
+        }
 
-        //public static Task<R> HandleAsync<R>(Func<R> function, params SpecialCase[] cases) {
-        //    return Task.Run(() => Handle(function, cases));
-        //}
+        public static Task<R> Handle<R>(Func<Task<R>> function, params Func<SpecialCase>[] caseFetchers) {
+            return _HandleAsync(function, _AssembleCases(caseFetchers));
+        }
 
+        public static Task<R> Handle<R>(Func<Task<R>> function, params Action<SpecialCase>[] caseMolders) {
+            return _HandleAsync(function, _AssembleCases(caseMolders));
+        }
 
-
-
-        //public static R Handle<R>(Func<R> function, Action<SpecialCase>[] caseBuilders) {
-        //    return Handle(function, BuildCases(caseBuilders));
-        //}
-
-
-
-
-        //public static R Handle<R>(Func<R> function, SpecialCase[] cases) {
-        //    try {
-        //        return function();
-        //    }
-        //    catch (Exception ex) {
-        //        if (ex.Deaggregate() is StdApiWebException apiEx) {
-        //            apiEx.SpecialCases.AddRange(cases);
-        //            throw apiEx;
-        //        }
-        //        else throw;
-        //    }
-        //}
-
-
-
-
-        //private static SpecialCase[] BuildCases(Action<SpecialCase>[] caseBuilders) {
-        //    var array = new SpecialCase[caseBuilders.Length];
-        //    for (int i = 0; i < caseBuilders.Length; i++) {
-        //        array[i] = new SpecialCase();
-        //        caseBuilders[i](array[i]);
-        //    }
-        //    return array;
-        //}
-
-
-
-
-        //public static SpecialCase Caso(int status, SpecialCase.M messageBuilder) {
-        //    return new SpecialCase() { Status = status, Message = messageBuilder };
-        //}
-
-
-
-
-        public static Task<R> HandleAsync<R>(Func<R> function, params Action<SpecialCase>[] caseBuilders) {
-            return Task.Run(() => Handle(function, BuildCases(caseBuilders)));
+        public static Task<R> Handle<R>(Func<Task<R>> function, params SpecialCase[] cases) {
+            return _HandleAsync(function, cases);
         }
 
 
 
 
-        public static Task<R> HandleAsync<R>(Func<R> function, params Func<SpecialCase>[] caseBuilders) {
-            return Task.Run(() => Handle(function, caseBuilders.Select(c => c()).ToArray()));
+
+
+        private static async Task<R> _HandleAsync<R>(Func<Task<R>> function, SpecialCase[] cases) {
+            try {
+                return await function();
+            }
+            catch (Exception ex) {
+                _InjectCases(ex, cases);
+                throw;
+            }
         }
 
 
 
 
-        public static Task<R> HandleAsync<R>(Func<R> function, params SpecialCase[] cases) {
-            return Task.Run(() => Handle(function, cases));
-        }
 
 
-
-
-        public static R Handle<R>(Func<R> function, Action<SpecialCase>[] caseBuilders) {
-            return Handle(function, BuildCases(caseBuilders));
-        }
-
-
-
-
-        public static R Handle<R>(Func<R> function, SpecialCase[] cases) {
+        private static R _HandleSync<R>(Func<R> function, SpecialCase[] cases) {
             try {
                 return function();
             }
             catch (Exception ex) {
-                if (ex.Deaggregate() is StdApiWebException apiEx) {
-                    apiEx.SpecialCases.AddRange(cases);
-                    throw apiEx;
-                }
-                else throw;
+                _InjectCases(ex, cases);
+                throw;
             }
         }
 
 
 
 
-        private static SpecialCase[] BuildCases(Action<SpecialCase>[] caseBuilders) {
-            var array = new SpecialCase[caseBuilders.Length];
-            for (int i = 0; i < caseBuilders.Length; i++) {
+        private static void _InjectCases(Exception ex, SpecialCase[] cases) {
+            if (ex.Deaggregate() is StdApiWebException apiEx)
+                apiEx.SpecialCases.AddRange(cases);
+        }
+
+
+
+
+        private static SpecialCase[] _AssembleCases(Action<SpecialCase>[] caseMolders) {
+            var array = new SpecialCase[caseMolders.Length];
+            for (int i = 0; i < caseMolders.Length; i++) {
                 array[i] = new SpecialCase();
-                caseBuilders[i](array[i]);
+                caseMolders[i](array[i]);
             }
             return array;
         }
@@ -227,49 +189,8 @@ namespace StandardApiTools {
 
 
 
-        public struct SpecialCase {
-
-            public SpecialCase(int status, C condition, M message, D details) {
-                Status = status;
-                Condition = condition;
-                Message = message;
-                Details = details;
-            }
-            public SpecialCase(int status, M message) : this(status, null, message, null) { }
-            public SpecialCase(int status, C condition, M message) : this(status, condition, message, null) { }
-            public SpecialCase(int status, M message, D details) : this(status, null, message, details) { }
-
-
-
-
-            public int Status;
-            public C Condition;
-            public M Message;
-            public D Details;
-            //public Func<StdApiResponse, bool> Condition;
-            //public Func<StdApiResponse, string> Message;
-            //public Func<StdApiResponse, object> Details;
-            public delegate bool C(StdApiResponse r);
-            public delegate string M(StdApiResponse r);
-            public delegate object D(StdApiResponse r);
-
-
-
-
-            public static class StaticImports {
-                public static SpecialCase Case(int status, C condition, M message, D details) {
-                    return new SpecialCase(status, condition, message, details);
-                }
-                public static SpecialCase Case(int status, C condition, M message) {
-                    return new SpecialCase(status, condition, message, null);
-                }
-                public static SpecialCase Case(int status, M message, D details) {
-                    return new SpecialCase(status, null, message, details);
-                }
-                public static SpecialCase Case(int status, M message) {
-                    return new SpecialCase(status, null, message, null);
-                }
-            }
+        private static SpecialCase[] _AssembleCases(Func<SpecialCase>[] caseFetchers) {
+            return caseFetchers.Select(c => c()).ToArray();
         }
     }
 }
