@@ -6,7 +6,6 @@ using System.Text;
 using System;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
-using RestSharp;
 
 namespace StandardApiTools {
 
@@ -146,16 +145,15 @@ namespace StandardApiTools {
             return StdApiResponse.From(req);
         }
 
-        public static Task<StdApiResponse> GetStdApiResponseAsync(this IRestClient client, IRestRequest req) {
-            return StdApiResponse.FromAsync(req, client);
-        }
-
-        public static StdApiResponse GetStdApiResponse(this IRestClient client, IRestRequest req) {
-            return StdApiResponse.From(req, client);
-        }
-
         public static T ApplySpecialCase<T>(this Func<T> func, StdApiWebException.SpecialCase[] cases) {
             return StdApiWebException.Handle(func, cases);
+        }
+
+
+
+
+        public static StdApiResponse.CommunicationStatus ToCommStatus(this WebExceptionStatus wss) {
+            return (StdApiResponse.CommunicationStatus)(int)wss;
         }
     }
 }

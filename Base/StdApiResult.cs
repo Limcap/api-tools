@@ -20,18 +20,7 @@ namespace StandardApiTools {
 
 
 
-
-
     public class StdApiResult : IActionResult {
-
-        public StdApiResult(int status, string message, object data = null) { 
-            Status = status;
-            Message = message;
-            Data = data;
-        }
-
-
-
 
         public static StdApiResult From(Exception ex) {
             if (ex is StdApiWebException erex) {
@@ -46,6 +35,19 @@ namespace StandardApiTools {
                 new { Message = ex.Message, Data = ex.ToString() }
             );
         }
+
+
+
+
+        public StdApiResult(int status, string message, object data = null) {
+            Status = status;
+            Message = message;
+            Data = data;
+        }
+        public StdApiResult(StdApiResponse response, string message)
+        : this (response.BestStatusCode, message, response.ContentAsString) {}
+        public StdApiResult(StdApiResponse response)
+        : this(response, response.CommMessage) {}
 
 
 

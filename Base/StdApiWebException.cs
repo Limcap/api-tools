@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 namespace StandardApiTools {
     public partial class StdApiWebException: Exception, IProduceStdApiResult {
 
+        /// <summary>
+        /// Wrapper para o contrutor privado com os mesmos parâmetros, para validar a construção,
+        /// pois não é permitido criar um StdApiWebException a partir
+        /// de uma <see cref="StdApiResponse"/> cujo <see cref="StdApiResponse.CommStatus"/> seja
+        /// <see cref="StdApiResponse.CommunicationStatus.Success"/>
+        /// </summary>
         public static StdApiWebException From(StdApiResponse response, string message = null) {
             if (response.IsSuccess) return null;
             var ex = new StdApiWebException(response, message);
@@ -19,6 +25,23 @@ namespace StandardApiTools {
 
 
 
+        /// <summary>
+        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object, Exception)"/>
+        /// </summary>
+        public static StdApiWebException From(string message, object details = null, Exception innerException = null) {
+            return new StdApiWebException(message, details, innerException);
+        }
+
+
+
+
+
+
+        /// <summary>
+        /// Constroi uma exceção a partir dos parametros informados, cujo status sempre será
+        /// <see cref="HttpStatusCode.FailedDependency"/> se algum <see cref="SpecialCase"/>
+        /// não for aplicado.
+        /// </summary>
         public StdApiWebException(string message, object details = null, Exception innerException = null)
         : base(message, innerException) {
             _isManuallyCreated = true;
@@ -30,6 +53,11 @@ namespace StandardApiTools {
 
 
 
+        /// <summary>
+        /// Construtor privado pois é preciso validar primeiro a response pois
+        /// só deve ser criado uma exceção se a resposta for de erro.
+        /// <seealso cref="From(StdApiResponse, string)"/>
+        /// </summary>
         private StdApiWebException(StdApiResponse response, string message = null)
         : base(_defaultMessage, response.Exception) {
             Response = response;
@@ -70,12 +98,12 @@ namespace StandardApiTools {
                 var status = c != null ? c.Value.Status : (int)HttpStatusCode.FailedDependency;
                 var message = c != null ? c.Value.Message?.Invoke(Response) : _defaultMessage.Join(_additionResultMessage);
                 var details = c != null ? c.Value.Details?.Invoke(Response) : new {
-                    Status = Response.HttpStatusCode != null
-                        ? (int)Response.HttpStatusCode
-                        : Response.CommStatusCode,
-                    Description = Response.HttpStatusCode != null
-                        ? Response.HttpStatusCode.ToString()
-                        : Response.CommStatusSource?.ToString(),
+                    Status = Response.HttpStatus != null
+                        ? (int)Response.HttpStatus
+                        : (int)Response.CommStatus,
+                    Description = Response.HttpStatus != null
+                        ? Response.HttpStatus.ToString()
+                        : Response.CommStatus.ToString(),
                     Message = Response.CommMessage,
                     Data = Response.ContentAsString,
                     Uri = Response.RequestUri
@@ -98,7 +126,7 @@ namespace StandardApiTools {
             if (SpecialCases == null || SpecialCases.Count == 0) return null;
             var currentStatus = _isManuallyCreated
                 ? _result.Status
-                : Response?.CommStatusCode ?? (int?)Response.HttpStatusCode;
+                : (int?)Response?.CommStatus ?? (int?)Response.HttpStatus;
             foreach (var caso in SpecialCases) {
                 var isMatch = caso.Status == currentStatus;
                 var isConditionSatisfied = caso.Condition?.Invoke(Response) ?? true;
