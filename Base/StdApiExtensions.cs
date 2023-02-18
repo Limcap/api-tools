@@ -155,21 +155,5 @@ namespace StandardApiTools {
         public static StdApiResponse.CommunicationStatus ToCommStatus(this WebExceptionStatus wss) {
             return (StdApiResponse.CommunicationStatus)(int)wss;
         }
-
-
-
-
-
-        public static StdApiWebException AddSpecialCases(this StdApiWebException ex, params StdApiWebException.SpecialCase[] specialCases) {
-            if (ex!=null) ex.SpecialCases.AddRange(specialCases);
-            return ex;
-        }
-
-
-
-
-        public static void ThrowIfError(this StdApiWebException ex, string message = null, object additionalInfo = null) {
-            if (ex != null) throw ex;
-        }
     }
 }

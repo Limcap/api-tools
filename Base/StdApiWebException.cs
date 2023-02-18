@@ -81,6 +81,33 @@ namespace StandardApiTools {
 
 
 
+        public StdApiWebException SetAdditionalMessage(string additionalMessage) {
+            AdditionalMessage = additionalMessage;
+            return this;
+        }
+
+        public StdApiWebException SetAdditionalInfo(object additionalInfo) {
+            AdditionalInfo = additionalInfo;
+            return this;
+        }
+
+        public StdApiWebException AddSpecialCases(params StdApiWebException.SpecialCase[] specialCases) {
+            SpecialCases.AddRange(specialCases);
+            return this;
+        }
+
+        public void Throw() {
+            throw this;
+        }
+        //public void Throw(string additionalMessage = null, object additionalInfo = null) {
+        //    AdditionalMessage = additionalMessage;
+        //    AdditionalInfo = additionalInfo;
+        //    throw this;
+        //}
+
+
+
+
         public StdApiResult GetResult() {
             if (!IsManuallyCreated && !Response.IsSuccess) return null;
             SpecialCase? c = FindCase();
