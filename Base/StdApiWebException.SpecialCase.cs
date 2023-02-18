@@ -7,7 +7,7 @@
                 Status = status;
                 Condition = condition;
                 Message = message;
-                Details = details;
+                Content = details;
             }
 
             public SpecialCase(int status, M message) : this(status, null, message, null) { }
@@ -24,7 +24,7 @@
             //public Func<StdApiResponse, bool> Condition;
             public M Message;
             //public Func<StdApiResponse, string> Message;
-            public D Details;
+            public D Content;
             //public Func<StdApiResponse, object> Details;
 
 

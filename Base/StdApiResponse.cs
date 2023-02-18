@@ -41,7 +41,7 @@ namespace StandardApiTools {
         public string CommMessage { get; }
         public CommunicationStatus CommStatus { get; }
         public HttpStatusCode? HttpStatus { get; }
-        public int BestStatusCode => HttpStatus.HasValue ? (int)HttpStatus : (int)CommStatus; 
+        public int StatusCode => HttpStatus.HasValue ? (int)HttpStatus : (int)CommStatus; 
         public bool IsSuccess => HttpStatus.HasValue && ((int)HttpStatus) < 300;
         public string ContentAsString { get; }
         public byte[] ContentAsBytes { get => ContentAsString == null ? null : Encoding.UTF8.GetBytes(ContentAsString); }
@@ -172,6 +172,14 @@ namespace StandardApiTools {
             var ex = StdApiWebException.From(this, message);
             if (ex == null) return;
             throw ex;
+        }
+
+
+
+
+        public StdApiWebException ToStdApiException(string additionalMessage, object additionalInfo) {
+            if (IsSuccess) return null;
+            return StdApiWebException.From(this, additionalMessage);
         }
 
 

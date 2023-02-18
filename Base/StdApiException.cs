@@ -1,28 +1,40 @@
 ﻿using System;
 using System.Net;
+using System.Reflection.Metadata;
 
 namespace StandardApiTools {
 
     public class StdApiException: Exception, IProduceStdApiResult {
 
-        public StdApiException(string message,
-            object details = null,
-            Exception innerException = null)
-        : base(message, innerException) {
-            Result = new StdApiResult(500, message, details);
+        public StdApiException(Exception innerException, string message=null)
+        : base(message??innerException.Message, innerException) {
+            StatusCode = 500;
+            Content = innerException.ToString();
         }
 
 
 
 
-        public StdApiException(HttpStatusCode code, string message = null,object details = null, Exception innerException = null)
-        : base(message ?? code.ToString(), innerException) {
-            Result = new StdApiResult((int)code, message ?? code.ToString(), details);
+        public StdApiException(string message, object content = null)
+        : base(message) {
+            StatusCode = 500;
+            Content = content;
         }
 
 
 
 
-        public StdApiResult Result { get; }
+        public StdApiException(HttpStatusCode code, string message = null, object content = null)
+        : base(message ?? code.ToString()) {
+            StatusCode = (int)code;
+            Content = content;
+        }
+
+
+
+
+        public readonly int StatusCode;
+        public readonly object Content;
+        public StdApiResult GetResult() => new StdApiResult(StatusCode, Message, Content);
     }
 }

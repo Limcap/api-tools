@@ -2,19 +2,42 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
+using System.Reflection.Metadata;
 
 namespace StandardApiTools {
 
     public interface IProduceStdApiResult {
-        public StdApiResult Result { get; }
+        public StdApiResult GetResult();
     }
 
 
 
 
-    public class StdApiResult<T> : StdApiResult {
+    public class StdApiResult<T> : StdApiResult where T : class {
+ 
         public StdApiResult(int status, string message, T data) : base(status, message, data) { }
-        public new T Data => (T) base.Data;
+ 
+        public StdApiResult(StdApiResponse response, string message) {
+            base.Status = response.StatusCode;
+            base.Content = Desserialize(response.ContentAsString);
+            base.Message = ComposeMessage(message, Content);
+        }
+
+        public new T Content => (T) base.Content;
+
+        public static T Desserialize(string json) {
+            try { return JsonSerializer.Deserialize<T>(json); }
+            catch { return null; }
+        }
+
+        public static string ComposeMessage(string message, T content) {
+            if (content != null) return message;
+            return message
+            + Environment.NewLine
+            + "\nO conteúdo não pode ser desserializado em um objeto do tipo " + typeof(T).Name;
+        }
     }
 
 
@@ -23,48 +46,58 @@ namespace StandardApiTools {
     public class StdApiResult : IActionResult {
 
         public static StdApiResult From(Exception ex) {
-            if (ex is StdApiWebException erex) {
-                return erex.Result;
-            }
             if (ex is IProduceStdApiResult aex) {
-                return aex.Result;
+                return aex.GetResult();
             }
             return new StdApiResult(
                 500,
                 "Ocorreu um erro não identificado durante o processamento.",
-                new { Message = ex.Message, Data = ex.ToString() }
+                new { ErrorMessage = ex.Message, Detail = ex.ToString() }
             );
         }
 
 
 
 
-        public StdApiResult(int status, string message, object data = null) {
+        public StdApiResult(int status, string message, object content = null, object info = null) {
             Status = status;
             Message = message;
-            Data = data;
+            Content = content;
+            Info = info;
         }
         public StdApiResult(StdApiResponse response, string message)
-        : this (response.BestStatusCode, message, response.ContentAsString) {}
+        : this (response.StatusCode, message, response.ContentAsString) {}
         public StdApiResult(StdApiResponse response)
         : this(response, response.CommMessage) {}
+        protected StdApiResult(){}
 
 
 
 
-        public readonly int Status;
-        public string Message { get; private set; }
-        public object Data { get; private set; }
+        public int Status { get; protected set; }
+        public string Message { get; protected set; }
+        public object Content { get; protected set; }
+        public object Info { get; protected set; }
+        public bool SupressNullFromResult { get; set; } = SupressNullPropertiesFromResults;
+        public static bool SupressNullPropertiesFromResults { get; set; } = true;
 
 
 
 
         public async Task ExecuteResultAsync(ActionContext context) {
-            await new JsonResult(null) {
+            var r = new JsonResult(null) {
                 StatusCode = Status,
                 ContentType = "application/json",
-                Value = new { message = Message, data = Data }
-            }.ExecuteResultAsync(context);
+            };
+            if (!SupressNullFromResult)
+                r.Value = new { message = Message, content = Content, info = Info };
+            else if (Content == null && Info == null)
+                r.Value = new { message = Message };
+            else if (Info == null)
+                r.Value = new { message = Message, content = Content};
+            else if (Content == null)
+                r.Value = new { message = Message, info = Info};
+            await r.ExecuteResultAsync(context);
         }
     }
 }
