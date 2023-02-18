@@ -156,30 +156,29 @@ namespace StandardApiTools {
 
 
 
-        public void ThrowError(params StdApiWebException.SpecialCase[] specialCases) {
-            if (IsSuccess) return;
-            var ex = StdApiWebException.From(this);
-            ex.SpecialCases.AddRange(specialCases);
-            if (ex == null) return;
-            throw ex;
-        }
+        //public void ThrowError(params StdApiWebException.SpecialCase[] specialCases) {
+        //    if (IsSuccess) return;
+        //    var ex = StdApiWebException.From(this);
+        //    ex.SpecialCases.AddRange(specialCases);
+        //    if (ex == null) return;
+        //    throw ex;
+        //}
 
 
 
 
-        public void ThrowError(string message) {
-            if (IsSuccess) return;
-            var ex = StdApiWebException.From(this, message);
-            if (ex == null) return;
-            throw ex;
-        }
+        //public void ThrowError(string message = null, object additionalInfo = null) {
+        //    var ex = ToStdApiException(message, additionalInfo);
+        //    if(ex == null) return;
+        //    throw ex;
+        //}
 
 
 
 
-        public StdApiWebException ToStdApiException(string additionalMessage, object additionalInfo) {
+        public StdApiWebException ToStdApiException(string additionalMessage = null, object additionalInfo = null) {
             if (IsSuccess) return null;
-            return StdApiWebException.From(this, additionalMessage);
+            return StdApiWebException.From(this, additionalMessage, additionalInfo);
         }
 
 
