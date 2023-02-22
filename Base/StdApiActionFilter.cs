@@ -26,6 +26,13 @@ namespace StandardApiTools {
                 context.ExceptionHandled = true;
             }
         }
+        public static void HandleExceptions(ExceptionContext context) {
+            if (context.Exception != null && !context.ExceptionHandled) {
+                context.Exception = context.Exception.Deaggregate();
+                context.Result = StdApiResult.From(context.Exception);
+                context.ExceptionHandled = true;
+            }
+        }
 
 
 

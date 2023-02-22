@@ -27,8 +27,9 @@ namespace StandardApiTools {
 
         public new T Content => (T) base.Content;
 
-        public static T Desserialize(string json) {
-            try { return JsonSerializer.Deserialize<T>(json); }
+        public static T Desserialize(string json, JsonSerializerOptions options = null) {
+            options ??= new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+            try { return JsonSerializer.Deserialize<T>(json, options); }
             catch { return null; }
         }
 

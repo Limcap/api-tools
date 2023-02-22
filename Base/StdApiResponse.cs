@@ -1,14 +1,19 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.JsonPatch.Helpers;
+using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using static StandardApiTools.StdApiResponse;
+using static StandardApiTools.StdApiWebException.SpecialCase;
 
 namespace StandardApiTools {
 
-    public class StdApiResponse {
+    public partial class StdApiResponse {
 
         public static async Task<StdApiResponse> FromAsync(HttpWebRequest req) {
             try {
@@ -94,7 +99,7 @@ namespace StandardApiTools {
             Method = hr.Method;
             Server = hr.Server;
             ContentEncoding = hr.ContentEncoding;
-            ContentAsString = GetContentAsString(resp);
+            ContentAsString = resp.GetContentAsString();
             resp.Dispose();
         }
 
@@ -122,6 +127,7 @@ namespace StandardApiTools {
 
 
 
+        /*
         /// <summary>
         /// Retorna o conteúdo de uma WebResponse no formato string.
         /// </summary>
@@ -137,6 +143,7 @@ namespace StandardApiTools {
             var data = sr.ReadToEnd();
             return data;
         }
+        */
 
 
 
@@ -175,42 +182,46 @@ namespace StandardApiTools {
 
 
 
-        private static T? TryOrNull<T>(Func<T> get) where T : struct {
-            try { return get(); } catch { return null; }
+        public DesserializationResult<C> TryDeserialize<C>( JsonSerializerOptions options = null ) where C : class {
+            try {
+                options ??= new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+                var res = JsonSerializer.Deserialize<C>(ContentAsString,options);
+                return new DesserializationResult<C>(res);
+            }
+            catch (Exception ex) {
+                return new DesserializationResult<C>(ex);
+            }
         }
 
 
 
 
-        public void ThrowError() {
-            if (IsSuccess) return;
-            throw StdApiWebException.From(this);
+        public StdApiResponse ThrowOnError(string additionalMessage, object additionalInfo, params StdApiWebException.SpecialCase[] specialCases) {
+            if (IsSuccess) return this;
+            var ex = StdApiWebException.From(this, additionalMessage, additionalInfo);
+            ex.SpecialCases.AddRange(specialCases);
+            if (ex == null) return this;
+            throw ex;
         }
 
 
 
 
-        //public void ThrowError(params StdApiWebException.SpecialCase[] specialCases) {
-        //    if (IsSuccess) return;
-        //    var ex = StdApiWebException.From(this);
-        //    ex.SpecialCases.AddRange(specialCases);
-        //    if (ex == null) return;
-        //    throw ex;
-        //}
+        public StdApiResponse ThrowOnError(string additionalMessage, object additionalInfo = null) {
+            return ThrowOnError(additionalMessage, additionalInfo, null);
+        }
 
 
 
 
-        //public void ThrowError(string message = null, object additionalInfo = null) {
-        //    var ex = ToStdApiException(message, additionalInfo);
-        //    if(ex == null) return;
-        //    throw ex;
-        //}
+        public StdApiResponse ThrowOnError() {
+            return ThrowOnError(null, null, null);
+        }
 
 
 
 
-        public StdApiWebException ToStdApiException(string additionalMessage = null, object additionalInfo = null) {
+        public StdApiWebException ToException(string additionalMessage = null, object additionalInfo = null) {
             if (IsSuccess) return null;
             return StdApiWebException.From(this, additionalMessage, additionalInfo);
         }
@@ -218,15 +229,22 @@ namespace StandardApiTools {
 
 
 
-        public StdApiResult ToStdApiResult() {
+        public StdApiResult ToResult() {
             return new StdApiResult(this);
         }
 
 
 
 
-        public StdApiResult ToStdApiResult(string message) {
+        public StdApiResult ToResult(string message) {
             return new StdApiResult(this, message);
+        }
+
+
+
+
+        private static T? TryOrNull<T>(Func<T> get) where T : struct {
+            try { return get(); } catch { return null; }
         }
 
 
@@ -282,6 +300,32 @@ namespace StandardApiTools {
             CacheEntryNotFound = 18,
             RequestProhibitedByCachePolicy = 19,
             RequestProhibitedByProxy = 20,
+        }
+
+
+
+
+        public struct DesserializationResult<T> {
+            public DesserializationResult(T value) {
+                Value = value;
+                Error = null;
+            }
+            public DesserializationResult(Exception error) {
+                Value = default;
+                Error = error;
+            }
+            public readonly T Value;
+            public readonly Exception Error;
+            const string _Message = "Não foi possível interpretar o resultado da chamada externa";
+            public DesserializationResult<T> ThrowOnError(string message, object data = null) {
+                if (Error != null) {
+                    throw new StdApiException(HttpStatusCode.Conflict, message ?? _Message, data);
+                }
+                return this;
+            }
+            public DesserializationResult<T> ThrowOnError() {
+                return ThrowOnError(_Message, null);
+            }
         }
     }
 }

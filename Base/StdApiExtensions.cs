@@ -38,13 +38,13 @@ namespace StandardApiTools {
 
 
 
-        /*
         /// <summary>
         /// Retorna o conteúdo de uma WebResponse no formato string.
         /// </summary>
         /// <param name="response">Objeto fonte</param>
         /// <param name="foceEncoding">Força a conversão da stream de bytes para string usando este encoding</param>
         public static string GetContentAsString(this WebResponse response, Encoding foceEncoding = null) {
+            if (response == null) return null;
             var encodingStr = (response as HttpWebResponse)?.ContentEncoding;
             var encoding = encodingStr == null ? null : Encoding.GetEncoding(encodingStr);
             encoding = foceEncoding ?? encoding;
@@ -53,7 +53,6 @@ namespace StandardApiTools {
             var data = sr.ReadToEnd();
             return data;
         }
-        */
 
 
 
