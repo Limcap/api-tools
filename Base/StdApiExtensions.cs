@@ -38,6 +38,7 @@ namespace StandardApiTools {
 
 
 
+        /*
         /// <summary>
         /// Retorna o conteúdo de uma WebResponse no formato string.
         /// </summary>
@@ -52,6 +53,7 @@ namespace StandardApiTools {
             var data = sr.ReadToEnd();
             return data;
         }
+        */
 
 
 

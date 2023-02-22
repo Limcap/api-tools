@@ -10,7 +10,7 @@
     <VersionSuffix>$([System.DateTime]::UtcNow.ToString(`yyMMddHHmm`))</VersionSuffix>
     <Version>$(VersionPrefix)-$(VersionSuffix)</Version>
     -->
-    <Version>0.9.2.0</Version>
+    <Version>0.9.3.0</Version>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
   </PropertyGroup>

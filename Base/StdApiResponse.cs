@@ -127,7 +127,7 @@ namespace StandardApiTools {
         /// </summary>
         /// <param name="response">Objeto fonte</param>
         /// <param name="foceEncoding">Força a conversão da stream de bytes para string usando este encoding</param>
-        public string GetContentAsString(WebResponse response, Encoding foceEncoding = null) {
+        private string GetContentAsString(WebResponse response, Encoding foceEncoding = null) {
             if (response == null) return null;
             var encodingStr = (response as HttpWebResponse)?.ContentEncoding;
             var encoding = encodingStr == null ? null : Encoding.GetEncoding(encodingStr);
@@ -136,6 +136,40 @@ namespace StandardApiTools {
             StreamReader sr = encoding != null ? new StreamReader(rs, encoding) : new StreamReader(rs, true);
             var data = sr.ReadToEnd();
             return data;
+        }
+
+
+
+
+        //public C ContentAsObject<C>() where C : class {
+        //    try { return System.Text.Json.JsonSerializer.Deserialize<C>(ContentAsString); }
+        //    catch { return null; }
+        //}
+        //public S? ContentAsStruct<S>() where S : struct {
+        //    try { return System.Text.Json.JsonSerializer.Deserialize<S>(ContentAsString); }
+        //    catch { return null; }
+        //}
+        /// <summary>
+        /// Retorna o conteúdo da resposta como o struct <see cref="S"/>
+        /// </summary>
+        /// <typeparam name="C">Nome do tipo do objeto</typeparam>
+        public C ContentAs<C>() where C : class {
+            try { return System.Text.Json.JsonSerializer.Deserialize<C>(ContentAsString); }
+            catch { return null; }
+        }
+
+
+
+
+        /// <summary>
+        /// Retorna o conteúdo da resposta como o struct <see cref="S"/>
+        /// </summary>
+        /// <typeparam name="S">Nome do tipo do struct</typeparam>
+        /// <param name="onErrorReturnDefaultValue">Se true, retorna o valor padrão do struct caso não
+        /// seja possível desserializar o conteúdo no tipo <see cref="S"/>. Se false, retorna null</param>
+        public S? ContentAs<S>(bool onErrorReturnDefaultValue = false) where S : struct {
+            try { return System.Text.Json.JsonSerializer.Deserialize<S>(ContentAsString); }
+            catch { if (onErrorReturnDefaultValue) return default(S); else return null; }
         }
 
 
