@@ -156,5 +156,12 @@ namespace StandardApiTools {
         public static StdApiResponse.CommunicationStatus ToCommStatus(this WebExceptionStatus wss) {
             return (StdApiResponse.CommunicationStatus)(int)wss;
         }
+
+
+
+        public static int? ToDigit(this char c) {
+            if(char.IsDigit(c)) return (c - '0');
+            return null;
+        }
     }
 }
