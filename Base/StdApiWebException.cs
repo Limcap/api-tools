@@ -1,12 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using static StandardApiTools.StdApiWebException.SpecialCase;
 
 namespace StandardApiTools {
     public partial class StdApiWebException: Exception, IProduceStdApiResult {
@@ -17,11 +14,9 @@ namespace StandardApiTools {
         /// de uma <see cref="StdApiResponse"/> cujo <see cref="StdApiResponse.CommStatus"/> seja
         /// <see cref="StdApiResponse.CommunicationStatus.Success"/>
         /// </summary>
-        //public static StdApiWebException From(StdApiResponse response, string additionalMessage = null, object additionalInfo = null) {
-        public static StdApiWebException From(StdApiResponse response, string additionalMessage = null, params KeyValuePair<string, object>[] customData) {
+        public static StdApiWebException From(StdApiResponse response, string additionalMessage = null) {
             if (response.IsSuccess) return null;
-            //var ex = new StdApiWebException(response, additionalMessage, additionalInfo);
-            var ex = new StdApiWebException(response, additionalMessage, customData);
+            var ex = new StdApiWebException(response, additionalMessage);
             return ex;
         }
 
@@ -29,12 +24,10 @@ namespace StandardApiTools {
 
 
         /// <summary>
-        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object, KeyValuePair{string, object}[])"/>
+        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object)"/>
         /// </summary>
-        //public static StdApiWebException From(string message, object content = null, object additionalInfo = null) {
-        //    return new StdApiWebException(message, content, additionalInfo);
-        public static StdApiWebException From(string message, object content = null, params KeyValuePair<string, object>[] customData) {
-            return new StdApiWebException(message, content, customData);
+        public static StdApiWebException From(string message, object content = null) {
+            return new StdApiWebException(message, content);
         }
 
 
@@ -45,13 +38,10 @@ namespace StandardApiTools {
         /// <see cref="HttpStatusCode.FailedDependency"/> se algum <see cref="SpecialCase"/>
         /// não for aplicado.
         /// </summary>
-        //public StdApiWebException(string message, object content = null, object info = null)//, Exception innerException = null
-        public StdApiWebException(string message, object content = null, params KeyValuePair<string, object>[] customData)
+        public StdApiWebException(string message, object content = null)
         : base(message) {
             _manualMsg = message;
             _manualContent = content;
-            foreach (var entry in customData) CustomData.AddAutoConcat(entry);
-            //AdditionalInfo = info;
         }
 
 
@@ -62,13 +52,10 @@ namespace StandardApiTools {
         /// só deve ser criado uma exceção se a resposta for de erro.
         /// <seealso cref="From(StdApiResponse, string)"/>
         /// </summary>
-        //private StdApiWebException(StdApiResponse response, string additionalMessage = null, object additionalInfo = null)
-        private StdApiWebException(StdApiResponse response, string additionalMessage = null, params KeyValuePair<string,object>[] customData)
+        private StdApiWebException(StdApiResponse response, string additionalMessage = null)
         : base(_defaultMsg, response.Exception) {
             Response = response;
             AddMessage(additionalMessage);
-            foreach (var entry in customData) CustomData.AddAutoConcat(entry);
-            //AdditionalInfo = additionalInfo;
         }
 
 
@@ -84,23 +71,21 @@ namespace StandardApiTools {
 
         //public string AdditionalMessage { get => _additionalMsg; set => _additionalMsg = value.TrimToNull(); }
         private string _additionalMsg;
- 
+
         private object _manualContent;
 
-        //public object AdditionalInfo { get; set; }
-        public StdApiCustomData CustomData { get; } = new StdApiCustomData();
+        public StdApiDataCollection Info { get; } = new StdApiDataCollection();
         private new readonly IDictionary Data = null;
 
 
 
         public StdApiWebException AddMessage(string additionalMessage) {
-            //AdditionalMessage = additionalMessage;
             _additionalMsg = additionalMessage.TrimToNull();
             return this;
         }
 
-        public StdApiWebException AddCustomData(string key, object value) {
-            CustomData.AddAutoConcat(key,value);
+        public StdApiWebException AddInfo(string key, object value) {
+            Info.Add(key, value);
             return this;
         }
 
@@ -143,8 +128,7 @@ namespace StandardApiTools {
                 Data = Response.ContentAsString,
                 Uri = Response.RequestUri
             };
-            //return new StdApiResult(status, message, content, AdditionalInfo);
-            return new StdApiResult(status, message, content, CustomData);
+            return new StdApiResult(status, message, content, Info);
         }
 
 
@@ -153,8 +137,7 @@ namespace StandardApiTools {
         private StdApiResult GetManualResult(SpecialCase? c) {
             var message = c != null ? c.Value.Message?.Invoke(null) : Message;
             var content = c != null ? c.Value.Content?.Invoke(null) : _manualContent;
-            //return new StdApiResult((int)HttpStatusCode.FailedDependency, message, content, AdditionalInfo);
-            return new StdApiResult((int)HttpStatusCode.FailedDependency, message, content, CustomData);
+            return new StdApiResult((int)HttpStatusCode.FailedDependency, message, content, Info);
         }
 
 

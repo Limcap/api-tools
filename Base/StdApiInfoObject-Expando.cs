@@ -2,36 +2,38 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.Linq;
+using System.Text.Json;
 
 namespace StandardApiTools {
 
-    public class StdApiCustomData: IEnumerable<KeyValuePair<string, object>> {
+    public class StdApiInfoObject: IEnumerable<KeyValuePair<string, object>> {
 
-        public StdApiCustomData(IDictionary<string,object> source = null) {
-            dict = source ?? new Dictionary<string, object>();
+        public StdApiInfoObject(IDictionary<string,object> source = null) {
+            eo = new ExpandoObject();
+            items = eo; 
         }
-        
+
 
         private static string[] ReservedKeys = new string[] { "message", "content" };
 
 
-        private readonly IDictionary<string, object> dict = new Dictionary<string, object>();
+        private readonly ExpandoObject eo;
+        private ICollection<KeyValuePair<string, object>> items;
 
 
-        public int Count => dict.Count;
+        public int Count => items.Count;
 
 
         //public Dictionary<string, object>.KeyCollection Keys => dict.Keys;
-        public ICollection<string> Keys => dict.Keys;
+        public IEnumerable<string> Keys => items.Select(i => i.Key);
 
 
-        public void Clear() => dict.Clear();
+        public void Clear() => items.Clear();
 
 
-        public bool ContainsKey(string key) => dict.ContainsKey(key);
-
-
+        public bool ContainsKey(string key) => Keys.Contains(key);
 
 
         public string AddAutoConcat(KeyValuePair<string, object> entry) => AddAutoConcat(entry.Key, entry.Value);
@@ -43,7 +45,7 @@ namespace StandardApiTools {
                 key = key += $"_";
                 newkey = $"{key}({keyCount++})";
             }
-            if (dict.ContainsKey(newkey)) {
+            if (ContainsKey(newkey)) {
                 var currentValue = dict[newkey];
                 List<object> list;
                 if (currentValue is List<object> currentList) {
@@ -90,21 +92,45 @@ namespace StandardApiTools {
 
 
         public object Get(string key) {
-            if (dict.TryGetValue(key, out var value)) return value; return null;
+            if (items.TryGetValue(key, out var value)) return value; return null;
         }
 
 
 
 
         public void FillReservedKeys(StdApiResult result) {
-            dict.TryAdd("message", result.Message);
-            dict["message"] = result.Message;
+            items.TryAdd("message", result.Message);
+            items["message"] = result.Message;
             dict.TryAdd("content", result.Content);
             dict["content"] = result.Content;
         }
 
 
-        IEnumerator IEnumerable.GetEnumerator() => dict.GetEnumerator();
-        IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator() => dict.GetEnumerator();
+
+
+        public string ToJson() {
+            var opt = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNameCaseInsensitive = true };
+            var serialized = JsonSerializer.Serialize(items, opt);
+            return serialized;
+        }
+
+
+
+        public object ToObject(bool ignoreNullValues = false) {
+            var eo = new ExpandoObject();
+            var eoc = (ICollection<KeyValuePair<string, object>>)eo;
+            foreach (var item in items) if(!ignoreNullValues || item.Value != null) eoc.Add(item);
+            return eo;
+            //var opt = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNameCaseInsensitive = true };
+            //var json = ToJson();
+            //var obj = JsonSerializer.Deserialize<object>(json, opt);
+            //return obj;
+        }
+
+
+
+
+        IEnumerator IEnumerable.GetEnumerator() => items.GetEnumerator();
+        IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator() => items.GetEnumerator();
     }
 }

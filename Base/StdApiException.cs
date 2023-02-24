@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Net;
-using System.Reflection.Metadata;
 
 namespace StandardApiTools {
 
     public class StdApiException: Exception, IProduceStdApiResult {
 
-        public StdApiException(Exception innerException, string message=null)
-        : base(message??innerException.Message, innerException) {
+        public StdApiException(Exception innerException, string message = null)
+        : base(message ?? innerException.Message, innerException) {
             StatusCode = 500;
             Content = innerException.ToString();
         }

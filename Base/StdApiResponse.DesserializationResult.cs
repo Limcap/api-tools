@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Net;
-using static StandardApiTools.StdApiResponse.Desserializer;
-using System.Text.Json;
-using static StandardApiTools.StdApiWebException.SpecialCase;
 
 namespace StandardApiTools {
 

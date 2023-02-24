@@ -136,9 +136,6 @@ namespace StandardApiTools {
         public StdApiWebException ToException(string additionalMessage = null) {
             return StdApiWebException.From(this, additionalMessage);
         }
-        //public StdApiWebException ToException(string additionalMessage = null, params KeyValuePair<string,object>[] customData) {
-        //    return StdApiWebException.From(this, additionalMessage, customData);
-        //}
 
 
 

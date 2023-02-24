@@ -1,12 +1,31 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Linq;
 using System.Text.Json;
 
 namespace StandardApiTools {
-    public class SafeDict: IEnumerable<KeyValuePair<string, object>> {
 
-        public SafeDict(IDictionary<string, object> source = null) {
+    public interface IStdApiDataCollection {
+        int Count { get; }
+        ICollection<string> Keys { get; }
+
+        void Add(KeyValuePair<string, object> entry);
+        void Add(string key, object value);
+        void Clear();
+        bool ContainsKey(string key);
+        object Get(string key);
+        void Set(string key, object value);
+        string ToJson();
+        object ToObject(bool ignoreNullValues = false);
+    }
+
+    public class StdApiDataCollection: IStdApiDataCollection, IEnumerable<KeyValuePair<string, object>> { 
+
+        public StdApiDataCollection(IDictionary<string, object> source = null) {
             dict = source ?? new Dictionary<string, object>();
         }
 
@@ -28,8 +47,8 @@ namespace StandardApiTools {
 
 
 
-        public void AddAutoConcat(KeyValuePair<string, object> entry) => AddAutoConcat(entry.Key, entry.Value);
-        public void AddAutoConcat(string key, object value) {
+        public void Add(KeyValuePair<string, object> entry) => Add(entry.Key, entry.Value);
+        public void Add(string key, object value) {
             if (dict.ContainsKey(key)) {
                 GetOrCreateList(key).Add(value);
             }
@@ -58,30 +77,6 @@ namespace StandardApiTools {
 
 
 
-        public string AddAutoRename(KeyValuePair<string, object> entry) => AddAutoRename(entry.Key, entry.Value);
-        public string AddAutoRename(string key, object value) {
-            var newkey = RenameKey(key);
-            dict.Add(newkey, value);
-            return newkey;
-        }
-
-
-
-
-        private string RenameKey(string key) {
-            var newkey = key;
-            int keyCount = 2;
-            //while (dict.ContainsKey(newkey) || ReservedKeys.Contains(newkey)) {
-            while (dict.ContainsKey(newkey)) {
-                if (keyCount == int.MaxValue) { key += "_"; keyCount = 1; }
-                newkey = $"{key}({keyCount++})";
-            }
-            return newkey;
-        }
-
-
-
-
         public void Set(string key, object value) {
             if (dict.ContainsKey(key)) dict[key] = value;
             else dict.Add(key, value);
@@ -92,16 +87,6 @@ namespace StandardApiTools {
 
         public object Get(string key) {
             if (dict.TryGetValue(key, out var value)) return value; return null;
-        }
-
-
-
-
-        public void FillReservedKeys(StdApiResult result) {
-            dict.TryAdd("message", result.Message);
-            dict["message"] = result.Message;
-            dict.TryAdd("content", result.Content);
-            dict["content"] = result.Content;
         }
 
 

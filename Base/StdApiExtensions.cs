@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Net;
-using System.Text;
+﻿using Newtonsoft.Json;
 using System;
-using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
@@ -106,7 +106,7 @@ namespace StandardApiTools {
                 }
                 return null;
             }
-            catch(Exception ex) {
+            catch (Exception ex) {
                 return ex;
             }
         }
@@ -142,9 +142,15 @@ namespace StandardApiTools {
             return StdApiResponse.FromAsync(req);
         }
 
+
+
+
         public static StdApiResponse GetStdApiResponse(this HttpWebRequest req) {
             return StdApiResponse.From(req);
         }
+
+
+
 
         public static T ApplySpecialCase<T>(this Func<T> func, StdApiWebException.SpecialCase[] cases) {
             return StdApiWebException.Handle(func, cases);
@@ -159,13 +165,16 @@ namespace StandardApiTools {
 
 
 
+
         public static int? ToDigit(this char c) {
-            if(char.IsDigit(c)) return (c - '0');
+            if (char.IsDigit(c)) return (c - '0');
             return null;
         }
 
 
-        public static string AddAutoConcat(this Dictionary<string, object> dict, string key, object value) {
+
+
+        public static string AddConcat(this Dictionary<string, object> dict, string key, object value) {
             var newkey = key;
             if (dict.ContainsKey(newkey)) {
                 var currentValue = dict[newkey];
@@ -187,22 +196,30 @@ namespace StandardApiTools {
 
 
 
-        public static string AutoAddRename<T>(this Dictionary<string, T> dict, string key, T value) {
-            var newkey = key;
-            int keyCount = 2;
-            while (dict.ContainsKey(newkey)) {
-                if (keyCount == int.MaxValue) { key += "_"; keyCount = 1; }
-                newkey = $"{key}({keyCount++})";
-            }
+
+        public static string AddRename<T>(this Dictionary<string, T> dict, string key, T value) {
+            var newkey = RenameKey(key, dict);
             dict.Add(newkey, value);
             return newkey;
+
+            static string RenameKey(string key, Dictionary<string, T> dict) {
+                var newkey = key;
+                int keyCount = 2;
+                //while (dict.ContainsKey(newkey) || ReservedKeys.Contains(newkey)) {
+                while (dict.ContainsKey(newkey)) {
+                    if (keyCount == int.MaxValue) { key += "_"; keyCount = 1; }
+                    newkey = $"{key}({keyCount++})";
+                }
+                return newkey;
+            }
         }
 
 
-        public static void Set<K,V>(this Dictionary<K, V>  dict, K key, V value) {
+
+
+        public static void Set<K, V>(this Dictionary<K, V> dict, K key, V value) {
             if (dict.ContainsKey(key)) dict[key] = value;
             else dict.Add(key, value);
         }
-        
     }
 }

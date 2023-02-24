@@ -2,7 +2,6 @@
 
 namespace StandardApiTools {
 
-
         public struct Safe<T> {
             public static Safe<T> Do(Func<T> action) {
                 Safe<T> s;

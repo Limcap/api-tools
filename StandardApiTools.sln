@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandardApiTools", "Base\StandardApiTools.csproj", "{CC71BB26-804C-4048-AA6A-B81F11CEF3CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandardApiTools.RestSharp", "RestSharpExtension\StandardApiTools.RestSharp.csproj", "{CC87D32C-2929-414D-B895-85F5F24A234C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandardApiTools.RestSharp", "RestSharpExtension\StandardApiTools.RestSharp.csproj", "{CC87D32C-2929-414D-B895-85F5F24A234C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
