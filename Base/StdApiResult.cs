@@ -124,29 +124,51 @@ namespace StandardApiTools {
                 ContentType = "application/json",
             };
             CustomData.FillReservedKeys(this);
-            r.Value = CustomData;
-            //r.Value = CompileFinalDictionary();
+            var finalValue = CompileFinalResultValue();
+            r.Value = finalValue;
             await r.ExecuteResultAsync(context);
         }
 
 
 
 
-        public Dictionary<string, object> CompileFinalDictionary() {
+        //public string CompileFinalResultString() {
+        //    var dict = new Dictionary<string, object>();
+        //    //var opt = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNameCaseInsensitive = true };
+        //    if (!SupressNullFromResult || Message != null) dict.Add("message", Message);
+        //    if (!SupressNullFromResult || Content != null) dict.Add("content", Message);
+        //    var group = CustomDataGroupName == null ? dict : new Dictionary<string, object>();
+        //    foreach (var entry in CustomData) {
+        //        dict.AutoAdd(entry.Key, entry.Value);
+        //        //int keyCount = 2;
+        //        //var key = entry.Key;
+        //        //while (group.ContainsKey(key)) key = $"{entry.Key}({keyCount++})";
+        //        //if (!SupressNullFromResult || entry.Value != null) group.Add(key, entry.Value);
+        //    }
+        //    if (!ReferenceEquals(group, dict)) dict.Add(CustomDataGroupName ?? "Data", group);
+        //    var opt = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNameCaseInsensitive = true };
+        //    var serialized = JsonSerializer.Serialize(dict, opt);
+        //    var obj = JsonSerializer.Deserialize<object>(serialized, opt);
+        //    return obj;
+        //}
+        public object CompileFinalResultValue() {
             var dict = new Dictionary<string, object>();
             //var opt = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNameCaseInsensitive = true };
             if (!SupressNullFromResult || Message != null) dict.Add("message", Message);
-            if (!SupressNullFromResult || Content != null) dict.Add("content", Message);
+            if (!SupressNullFromResult || Content != null) dict.Add("content", Content);
             var group = CustomDataGroupName == null ? dict : new Dictionary<string, object>();
             foreach (var entry in CustomData) {
-                dict.AutoAdd(entry.Key, entry.Value);
+                if (!SupressNullFromResult || entry.Value != null) group.AutoAddRename(entry.Key, entry.Value);
                 //int keyCount = 2;
                 //var key = entry.Key;
                 //while (group.ContainsKey(key)) key = $"{entry.Key}({keyCount++})";
                 //if (!SupressNullFromResult || entry.Value != null) group.Add(key, entry.Value);
             }
             if (!ReferenceEquals(group, dict)) dict.Add(CustomDataGroupName ?? "Data", group);
-            return dict;
+            var opt = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNameCaseInsensitive = true };
+            var serialized = JsonSerializer.Serialize(dict, opt);
+            var obj = JsonSerializer.Deserialize<object>(serialized, opt);
+            return obj;
         }
 
 

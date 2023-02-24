@@ -164,15 +164,38 @@ namespace StandardApiTools {
             return null;
         }
 
-        public static bool AutoAdd<T>(this Dictionary<string, T> dict, string key, T value) {
+
+        public static string AddAutoConcat(this Dictionary<string, object> dict, string key, object value) {
+            var newkey = key;
+            if (dict.ContainsKey(newkey)) {
+                var currentValue = dict[newkey];
+                List<object> list;
+                if (currentValue is List<object> currentList) {
+                    list = currentList;
+                    list.Add(value);
+                }
+                else {
+                    list = new List<object>();
+                    list.Add(currentValue);
+                    list.Add(value);
+                    dict[newkey] = list;
+                }
+            }
+            else dict.Add(newkey, value);
+            return newkey;
+        }
+
+
+
+        public static string AutoAddRename<T>(this Dictionary<string, T> dict, string key, T value) {
             var newkey = key;
             int keyCount = 2;
             while (dict.ContainsKey(newkey)) {
-                if (keyCount == int.MaxValue) return false;
+                if (keyCount == int.MaxValue) { key += "_"; keyCount = 1; }
                 newkey = $"{key}({keyCount++})";
             }
-            dict.Add(key, value);
-            return true;
+            dict.Add(newkey, value);
+            return newkey;
         }
 
 

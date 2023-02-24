@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -31,18 +32,51 @@ namespace StandardApiTools {
         public bool ContainsKey(string key) => dict.ContainsKey(key);
 
 
-        //public bool Add(string key, object value) => dict.TryAdd(key, value);
-        public string Add(string key, object value) {
+
+
+        public string AddAutoConcat(KeyValuePair<string, object> entry) => AddAutoConcat(entry.Key, entry.Value);
+        public string AddAutoConcat(string key, object value) {
+            var newkey = key;
+            int keyCount = 1;
+            while (ReservedKeys.Contains(newkey)) {
+                keyCount++;
+                key = key += $"_";
+                newkey = $"{key}({keyCount++})";
+            }
+            if (dict.ContainsKey(newkey)) {
+                var currentValue = dict[newkey];
+                List<object> list;
+                if (currentValue is List<object> currentList) {
+                    list = currentList;
+                    list.Add(value);
+                }
+                else {
+                    list = new List<object>();
+                    list.Add(currentValue);
+                    list.Add(value);
+                    dict[newkey] = list;
+                }
+            }
+            else dict.Add(newkey, value);
+            return newkey;
+        }
+
+
+
+
+        public string AddAutoRename(KeyValuePair<string,object> entry) => AddAutoRename(entry.Key, entry.Value);
+        public string AddAutoRename(string key, object value) {
             var newkey = key;
             int keyCount = 2;
             while (dict.ContainsKey(newkey) || ReservedKeys.Contains(newkey)) {
-                if (keyCount == int.MaxValue) return null;
+                if (keyCount == int.MaxValue) { key += "_"; keyCount = 1; }
                 newkey = $"{key}({keyCount++})";
             }
             dict.Add(newkey, value);
             return newkey;
         }
-        public string Add(KeyValuePair<string,object> entry) => Add(entry.Key, entry.Value);
+ 
+
 
 
         public bool Set(string key, object value) {
@@ -53,9 +87,13 @@ namespace StandardApiTools {
         }
 
 
+
+
         public object Get(string key) {
             if (dict.TryGetValue(key, out var value)) return value; return null;
         }
+
+
 
 
         public void FillReservedKeys(StdApiResult result) {

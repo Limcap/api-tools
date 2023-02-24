@@ -50,7 +50,7 @@ namespace StandardApiTools {
         : base(message) {
             _manualMsg = message;
             _manualContent = content;
-            foreach (var entry in customData) CustomData.Add(entry);
+            foreach (var entry in customData) CustomData.AddAutoConcat(entry);
             //AdditionalInfo = info;
         }
 
@@ -67,7 +67,7 @@ namespace StandardApiTools {
         : base(_defaultMsg, response.Exception) {
             Response = response;
             AddMessage(additionalMessage);
-            foreach (var entry in customData) CustomData.Add(entry);
+            foreach (var entry in customData) CustomData.AddAutoConcat(entry);
             //AdditionalInfo = additionalInfo;
         }
 
@@ -100,7 +100,7 @@ namespace StandardApiTools {
         }
 
         public StdApiWebException AddCustomData(string key, object value) {
-            CustomData.Add(key,value);
+            CustomData.AddAutoConcat(key,value);
             return this;
         }
 
