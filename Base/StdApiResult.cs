@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.SymbolStore;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
 
     public interface IProduceStdApiResult {
-        public StdApiResult GetResult();
+        public StdApiResult ToResult();
     }
 
 
@@ -42,11 +45,11 @@ namespace StandardApiTools {
 
 
 
-    public class StdApiResult: IActionResult {
+    public partial class StdApiResult: IActionResult {
 
         public static StdApiResult From(Exception ex) {
             if (ex is IProduceStdApiResult aex) {
-                return aex.GetResult();
+                return aex.ToResult();
             }
             return new StdApiResult(
                 500,
@@ -58,12 +61,19 @@ namespace StandardApiTools {
 
 
 
-        public StdApiResult(int status, string message, object content = null, object info = null) {
+        //public StdApiResult(int status, string message, object content = null, object info = null) {
+        //    Status = status;
+        //    Message = message;
+        //    Content = content;
+        //    Info = info;
+        //    CustomData = new StdApiResultData();
+        //    SupressNullFromResult = SupressNullPropertiesFromResults;
+        //}
+        public StdApiResult(int status, string message, object content = null, StdApiCustomData customData = null) {
             Status = status;
             Message = message;
             Content = content;
-            Info = info;
-            CustomData = new Dictionary<string, object>();
+            CustomData = customData ?? new StdApiCustomData();
             SupressNullFromResult = SupressNullPropertiesFromResults;
         }
         public StdApiResult(StdApiResponse response, string message)
@@ -78,32 +88,32 @@ namespace StandardApiTools {
         public int Status { get; protected set; }
         public string Message { get; protected set; }
         public object Content { get; protected set; }
-        public object Info { get; protected set; }
+        //public object Info { get; protected set; }
         public bool SupressNullFromResult { get; set; }
         public string CustomDataGroupName { get; set; }
         public static bool SupressNullPropertiesFromResults { get; set; } = true;
-        public Dictionary<string, object> CustomData { get; protected set; }
+        public StdApiCustomData CustomData { get; protected set; }
 
 
 
 
-        public async Task ExecuteResultAsync_old(ActionContext context) {
-            var r = new JsonResult(null) {
-                StatusCode = Status,
-                ContentType = "application/json",
-            };
-            if (!SupressNullFromResult)
-                r.Value = new { message = Message, content = Content, info = Info };
-            else if (Content == null && Info == null)
-                r.Value = new { message = Message };
-            else if (Info == null)
-                r.Value = new { message = Message, content = Content };
-            else if (Content == null)
-                r.Value = new { message = Message, info = Info };
-            else
-                r.Value = new { message = Message, content = Content, info = Info };
-            await r.ExecuteResultAsync(context);
-        }
+        //public async Task ExecuteResultAsync_old(ActionContext context) {
+        //    var r = new JsonResult(null) {
+        //        StatusCode = Status,
+        //        ContentType = "application/json",
+        //    };
+        //    if (!SupressNullFromResult)
+        //        r.Value = new { message = Message, content = Content, info = Info };
+        //    else if (Content == null && Info == null)
+        //        r.Value = new { message = Message };
+        //    else if (Info == null)
+        //        r.Value = new { message = Message, content = Content };
+        //    else if (Content == null)
+        //        r.Value = new { message = Message, info = Info };
+        //    else
+        //        r.Value = new { message = Message, content = Content, info = Info };
+        //    await r.ExecuteResultAsync(context);
+        //}
 
 
 
@@ -113,7 +123,9 @@ namespace StandardApiTools {
                 StatusCode = Status,
                 ContentType = "application/json",
             };
-            r.Value = CompileFinalDictionary();
+            CustomData.FillReservedKeys(this);
+            r.Value = CustomData;
+            //r.Value = CompileFinalDictionary();
             await r.ExecuteResultAsync(context);
         }
 
@@ -126,13 +138,12 @@ namespace StandardApiTools {
             if (!SupressNullFromResult || Message != null) dict.Add("message", Message);
             if (!SupressNullFromResult || Content != null) dict.Add("content", Message);
             var group = CustomDataGroupName == null ? dict : new Dictionary<string, object>();
-            if (CustomDataGroupName == null) {
-                foreach (var entry in CustomData) {
-                    int keyCount = 2;
-                    var key = entry.Key;
-                    while (group.ContainsKey(key)) key = $"{entry.Key}({keyCount++})";
-                    if (!SupressNullFromResult || entry.Value != null) group.Add(key, entry.Value);
-                }
+            foreach (var entry in CustomData) {
+                dict.AutoAdd(entry.Key, entry.Value);
+                //int keyCount = 2;
+                //var key = entry.Key;
+                //while (group.ContainsKey(key)) key = $"{entry.Key}({keyCount++})";
+                //if (!SupressNullFromResult || entry.Value != null) group.Add(key, entry.Value);
             }
             if (!ReferenceEquals(group, dict)) dict.Add(CustomDataGroupName ?? "Data", group);
             return dict;

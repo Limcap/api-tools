@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,9 +17,11 @@ namespace StandardApiTools {
         /// de uma <see cref="StdApiResponse"/> cujo <see cref="StdApiResponse.CommStatus"/> seja
         /// <see cref="StdApiResponse.CommunicationStatus.Success"/>
         /// </summary>
-        public static StdApiWebException From(StdApiResponse response, string additionalMessage = null, object additionalInfo = null) {
+        //public static StdApiWebException From(StdApiResponse response, string additionalMessage = null, object additionalInfo = null) {
+        public static StdApiWebException From(StdApiResponse response, string additionalMessage = null, params KeyValuePair<string, object>[] customData) {
             if (response.IsSuccess) return null;
-            var ex = new StdApiWebException(response, additionalMessage, additionalInfo);
+            //var ex = new StdApiWebException(response, additionalMessage, additionalInfo);
+            var ex = new StdApiWebException(response, additionalMessage, customData);
             return ex;
         }
 
@@ -25,10 +29,12 @@ namespace StandardApiTools {
 
 
         /// <summary>
-        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object, object)"/>
+        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object, KeyValuePair{string, object}[])"/>
         /// </summary>
-        public static StdApiWebException From(string message, object content = null, object additionalInfo = null) {
-            return new StdApiWebException(message, content, additionalInfo);
+        //public static StdApiWebException From(string message, object content = null, object additionalInfo = null) {
+        //    return new StdApiWebException(message, content, additionalInfo);
+        public static StdApiWebException From(string message, object content = null, params KeyValuePair<string, object>[] customData) {
+            return new StdApiWebException(message, content, customData);
         }
 
 
@@ -39,11 +45,13 @@ namespace StandardApiTools {
         /// <see cref="HttpStatusCode.FailedDependency"/> se algum <see cref="SpecialCase"/>
         /// não for aplicado.
         /// </summary>
-        public StdApiWebException(string message, object content = null, object info = null)//, Exception innerException = null
+        //public StdApiWebException(string message, object content = null, object info = null)//, Exception innerException = null
+        public StdApiWebException(string message, object content = null, params KeyValuePair<string, object>[] customData)
         : base(message) {
-            _manualMessage = message;
+            _manualMsg = message;
             _manualContent = content;
-            AdditionalInfo = info;
+            foreach (var entry in customData) CustomData.Add(entry);
+            //AdditionalInfo = info;
         }
 
 
@@ -54,11 +62,13 @@ namespace StandardApiTools {
         /// só deve ser criado uma exceção se a resposta for de erro.
         /// <seealso cref="From(StdApiResponse, string)"/>
         /// </summary>
-        private StdApiWebException(StdApiResponse response, string additionalMessage = null, object additionalInfo = null)
-        : base(_defaultMessage, response.Exception) {
+        //private StdApiWebException(StdApiResponse response, string additionalMessage = null, object additionalInfo = null)
+        private StdApiWebException(StdApiResponse response, string additionalMessage = null, params KeyValuePair<string,object>[] customData)
+        : base(_defaultMsg, response.Exception) {
             Response = response;
-            AdditionalMessage = additionalMessage;
-            AdditionalInfo = additionalInfo;
+            AddMessage(additionalMessage);
+            foreach (var entry in customData) CustomData.Add(entry);
+            //AdditionalInfo = additionalInfo;
         }
 
 
@@ -68,30 +78,33 @@ namespace StandardApiTools {
         public readonly List<SpecialCase> SpecialCases = new List<SpecialCase>();
         private bool IsManuallyCreated => Response == null;
 
-        public override string Message => IsManuallyCreated ? _manualMessage.Join(_addMsg) : _defaultMessage.Join(_addMsg);
-        const string _defaultMessage = "A chamada para um serviço externo falhou.";
-        private readonly string _manualMessage;
-        
-        public string AdditionalMessage { get => _addMsg; set => _addMsg = value.TrimToNull(); }
-        private string _addMsg;
+        public override string Message => IsManuallyCreated ? _manualMsg.Join(_additionalMsg) : _defaultMsg.Join(_additionalMsg);
+        const string _defaultMsg = "A chamada para um serviço externo falhou.";
+        private readonly string _manualMsg;
 
-        public object AdditionalInfo { get; set; }
+        //public string AdditionalMessage { get => _additionalMsg; set => _additionalMsg = value.TrimToNull(); }
+        private string _additionalMsg;
+ 
         private object _manualContent;
 
+        //public object AdditionalInfo { get; set; }
+        public StdApiCustomData CustomData { get; } = new StdApiCustomData();
+        private new readonly IDictionary Data = null;
 
 
 
-        public StdApiWebException SetAdditionalMessage(string additionalMessage) {
-            AdditionalMessage = additionalMessage;
+        public StdApiWebException AddMessage(string additionalMessage) {
+            //AdditionalMessage = additionalMessage;
+            _additionalMsg = additionalMessage.TrimToNull();
             return this;
         }
 
-        public StdApiWebException SetAdditionalInfo(object additionalInfo) {
-            AdditionalInfo = additionalInfo;
+        public StdApiWebException AddCustomData(string key, object value) {
+            CustomData.Add(key,value);
             return this;
         }
 
-        public StdApiWebException AddSpecialCases(params StdApiWebException.SpecialCase[] specialCases) {
+        public StdApiWebException AddSpecialCases(params SpecialCase[] specialCases) {
             SpecialCases.AddRange(specialCases);
             return this;
         }
@@ -99,16 +112,14 @@ namespace StandardApiTools {
         public void Throw() {
             throw this;
         }
-        //public void Throw(string additionalMessage = null, object additionalInfo = null) {
-        //    AdditionalMessage = additionalMessage;
-        //    AdditionalInfo = additionalInfo;
-        //    throw this;
-        //}
 
 
 
 
-        public StdApiResult GetResult() {
+        #region =================== metodos relativos à StdApiResult ===================
+        #endregion
+
+        public StdApiResult ToResult() {
             if (!IsManuallyCreated && !Response.IsSuccess) return null;
             SpecialCase? c = FindCase();
             if (IsManuallyCreated) return GetManualResult(c);
@@ -132,7 +143,8 @@ namespace StandardApiTools {
                 Data = Response.ContentAsString,
                 Uri = Response.RequestUri
             };
-            return new StdApiResult(status, message, content, AdditionalInfo);
+            //return new StdApiResult(status, message, content, AdditionalInfo);
+            return new StdApiResult(status, message, content, CustomData);
         }
 
 
@@ -141,7 +153,8 @@ namespace StandardApiTools {
         private StdApiResult GetManualResult(SpecialCase? c) {
             var message = c != null ? c.Value.Message?.Invoke(null) : Message;
             var content = c != null ? c.Value.Content?.Invoke(null) : _manualContent;
-            return new StdApiResult((int)HttpStatusCode.FailedDependency, message, content, AdditionalInfo);
+            //return new StdApiResult((int)HttpStatusCode.FailedDependency, message, content, AdditionalInfo);
+            return new StdApiResult((int)HttpStatusCode.FailedDependency, message, content, CustomData);
         }
 
 
@@ -162,6 +175,9 @@ namespace StandardApiTools {
 
 
 
+
+        # region =================== Metodos relativos a SpecialCase ===================
+        #endregion
 
         public static R Handle<R>(Func<R> function, params Func<SpecialCase>[] caseFetchers) {
             return _HandleSync(function, _AssembleCases(caseFetchers));

@@ -35,6 +35,17 @@ namespace StandardApiTools {
 
         public readonly int StatusCode;
         public readonly object Content;
-        public StdApiResult GetResult() => new StdApiResult(StatusCode, Message, Content);
+
+
+
+
+        public StdApiResult ToResult() => new StdApiResult(StatusCode, Message, Content);
+
+
+
+
+        public void Throw() {
+            throw this;
+        }
     }
 }

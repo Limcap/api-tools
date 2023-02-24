@@ -163,5 +163,23 @@ namespace StandardApiTools {
             if(char.IsDigit(c)) return (c - '0');
             return null;
         }
+
+        public static bool AutoAdd<T>(this Dictionary<string, T> dict, string key, T value) {
+            var newkey = key;
+            int keyCount = 2;
+            while (dict.ContainsKey(newkey)) {
+                if (keyCount == int.MaxValue) return false;
+                newkey = $"{key}({keyCount++})";
+            }
+            dict.Add(key, value);
+            return true;
+        }
+
+
+        public static void Set<K,V>(this Dictionary<K, V>  dict, K key, V value) {
+            if (dict.ContainsKey(key)) dict[key] = value;
+            else dict.Add(key, value);
+        }
+        
     }
 }
