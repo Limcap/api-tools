@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
@@ -14,12 +10,11 @@ namespace StandardApiTools {
         /// só deve ser criado uma exceção se a resposta for de erro.
         /// <seealso cref="From(StdApiResponse, string)"/>
         /// </summary>
-        private StdApiWebException(StdApiResponse response)
+        public StdApiWebException(StdApiResponse response)
         : base(response.Exception) {
             Response = response;
-            Info = new StdApiDataCollection();
-            SpecialCases = new List<SpecialCase>(3);
-            MessageParts = new List<string>(3);
+            //content = response.ContentAsString;
+            //statusCode = (int) HttpStatusCode.FailedDependency;
             AddMessage(_defaultMsg);
         }
 
@@ -27,62 +22,58 @@ namespace StandardApiTools {
 
 
         public readonly StdApiResponse Response;
-        public readonly List<SpecialCase> SpecialCases;
-        //private readonly string _manualMsg;
-        //public string AdditionalMessage { get => _additionalMsg; set => _additionalMsg = value.TrimToNull(); }
-        //private string _additionalMsg;
-        //private readonly object ManualContent;
-        public readonly List<string> MessageParts;
+
+
+
+        public bool UseResponseStatusCode { get; set; } = false;
+        public override int StatusCode {
+            get => UseResponseStatusCode ? Response.StatusCode : (int)HttpStatusCode.FailedDependency;
+        }
+        public override object Content {
+            get => content != null ? content : CompileContent();
+            set => content = value;
+        }
 
 
 
 
-        // Previne o acesso a esse mebro que não será usado.
-        private new IDictionary Data { get; }
-        //public StdApiDataCollection Info { get; }
-        public override int StatusCode { get => CompileStatus(FindCase()); }
-        public override object Content { get => CompileContent(FindCase()); }
-        public override string Message { get => CompileMessage(FindCase()); }
-        //public bool IsManuallyCreated { get => Response == null; }
-        //private object Content { get => CompileContent(FindCase()); }
-
-
-
-
-        public StdApiWebException AddMessage(string additionalMessage) {
-            MessageParts.Add(additionalMessage.TrimToNull());
+        public StdApiWebException SetMessage(string message) {
+            MessageParts.Clear();
+            MessageParts.Add(message.TrimToNull());
             return this;
         }
 
 
 
 
-        # region ============================================================================
+        public new StdApiWebException AddMessage(string message) {
+            MessageParts.Add(message.TrimToNull());
+            return this;
+        }
+
+
+
+
+        public StdApiWebException SetContent(string content) {
+            this.content = content;
+            return this;
+        }
+
+
+
+        public new StdApiWebException AddInfo(string key, object value) {
+            Info.Add(key, value);
+            return this;
+        }
+
+
+
+
+        #region ============================================================================
         #endregion
         // Relativo a conversão para resultado
 
-        private int CompileStatus(SpecialCase? c) {
-            var status = c != null
-                ? c.Value.Status
-                : (int)HttpStatusCode.FailedDependency;
-            return status;
-        }
-
-
-
-
-        private string CompileMessage(SpecialCase? c) {
-            var message = c != null
-                ? c.Value.Message?.Invoke(Response)
-                : string.Join(Environment.NewLine, MessageParts);
-            return message;
-        }
-
-
-
-
-        private object CompileContent(SpecialCase? c) {
-            if (c != null) return c.Value.Content?.Invoke(Response);
+        private object CompileContent() {
             return new {
                 Status = Response.HttpStatus != null
                     ? (int)Response.HttpStatus
@@ -99,81 +90,27 @@ namespace StandardApiTools {
 
 
 
-        public override StdApiErrorResult ToResult() {
-            SpecialCase? c = FindCase();
-            var result = new StdApiErrorResult(CompileStatus(c), CompileMessage(c), CompileContent(c));
-            return result;
-        }
-
-
-
-
-        private SpecialCase? FindCase() {
-            if (SpecialCases == null || SpecialCases.Count == 0) return null;
-            var responseStatus = (int?)Response?.CommStatus ?? (int?)Response.HttpStatus;
-            foreach (var caso in SpecialCases) {
-                var isMatch = caso.Status == responseStatus;
-                var isConditionSatisfied = caso.Condition?.Invoke(Response) ?? true;
-                if (isMatch && isConditionSatisfied) return caso;
-            }
-            return null;
-        }
-
-
-
-
         #region ============================================================================
         #endregion
-        // Relativo a SpecialCase
 
-        public StdApiWebException AddSpecialCases(params SpecialCase[] specialCases) {
-            SpecialCases.AddRange(specialCases);
-            return this;
-        }
-
-
-
-
-        public static R Handle<R>(Func<R> function, params Func<SpecialCase>[] caseFetchers) {
-            return _HandleSync(function, _AssembleCases(caseFetchers));
-        }
-
-        public static R Handle<R>(Func<R> function, params Action<SpecialCase>[] caseMolders) {
-            return _HandleSync(function, _AssembleCases(caseMolders));
-        }
-
-        public static R Handle<R>(Func<R> function, params SpecialCase[] cases) {
-            return _HandleSync(function, cases);
-        }
-
-        public static Task<R> Handle<R>(Func<Task<R>> function, params Func<SpecialCase>[] caseFetchers) {
-            return _HandleAsync(function, _AssembleCases(caseFetchers));
-        }
-
-        public static Task<R> Handle<R>(Func<Task<R>> function, params Action<SpecialCase>[] caseMolders) {
-            return _HandleAsync(function, _AssembleCases(caseMolders));
-        }
-
-        public static Task<R> Handle<R>(Func<Task<R>> function, params SpecialCase[] cases) {
-            return _HandleAsync(function, cases);
-        }
-
-        private static async Task<R> _HandleAsync<R>(Func<Task<R>> function, SpecialCase[] cases) {
-            try {
-                return await function();
-            }
-            catch (Exception ex) {
-                _InjectCases(ex, cases);
-                throw;
-            }
-        }
-
-        private static R _HandleSync<R>(Func<R> function, SpecialCase[] cases) {
+        public static R Handle<R>(Func<R> function, Action<StdApiWebException> exceptionCusomization) {
             try {
                 return function();
             }
-            catch (Exception ex) {
-                _InjectCases(ex, cases);
+            catch (StdApiWebException ex) {
+                exceptionCusomization(ex);
+                throw;
+            }
+        }
+
+
+
+        public static void Handle<E>(Action function, Action<StdApiWebException> exceptionCusomization) {
+            try {
+                function();
+            }
+            catch (StdApiWebException ex) {
+                exceptionCusomization(ex);
                 throw;
             }
         }
@@ -181,28 +118,27 @@ namespace StandardApiTools {
 
 
 
-        private static void _InjectCases(Exception ex, SpecialCase[] cases) {
-            if (ex.Deaggregate() is StdApiWebException apiEx)
-                apiEx.SpecialCases.AddRange(cases);
-        }
-
-
-
-
-        private static SpecialCase[] _AssembleCases(Action<SpecialCase>[] caseMolders) {
-            var array = new SpecialCase[caseMolders.Length];
-            for (int i = 0; i < caseMolders.Length; i++) {
-                array[i] = new SpecialCase();
-                caseMolders[i](array[i]);
+        public static async Task<R> HandleAsync<R>(Func<Task<R>> function, Action<StdApiWebException> exceptionCusomization) {
+            try {
+                return await function();
             }
-            return array;
+            catch (StdApiWebException ex) {
+                exceptionCusomization(ex);
+                throw;
+            }
         }
 
 
 
 
-        private static SpecialCase[] _AssembleCases(Func<SpecialCase>[] caseFetchers) {
-            return caseFetchers.Select(c => c()).ToArray();
+        public static async Task HandleAsync<E>(Func<Task> function, Action<StdApiWebException> exceptionCusomization) {
+            try {
+                await function();
+            }
+            catch (StdApiWebException ex) {
+                exceptionCusomization(ex);
+                throw;
+            }
         }
 
 
@@ -223,16 +159,6 @@ namespace StandardApiTools {
             var ex = new StdApiWebException(response);
             return ex;
         }
-
-
-
-
-        /// <summary>
-        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object)"/>
-        /// </summary>
-        //public static StdApiWebException From(string message, object content = null) {
-        //    return new StdApiWebException(message, content);
-        //}
 
 
 
