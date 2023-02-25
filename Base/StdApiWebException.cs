@@ -3,21 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
-    public partial class StdApiWebException: Exception, IProduceStdApiResult, IAddInfo {
+    public partial class StdApiWebException: Exception, IProduceStdApiErrorResult, IAddInfo {
 
         /// <summary>
         /// Constroi uma exceção a partir dos parametros informados, cujo status sempre será
         /// <see cref="HttpStatusCode.FailedDependency"/> se algum <see cref="SpecialCase"/>
         /// não for aplicado.
         /// </summary>
-        public StdApiWebException(string message, object content = null)
-        : this(message, null) {
-            _manualMsg = message;
-            _manualContent = content;
-        }
+        //public StdApiWebException(string message, object content = null)
+        //: this(message, null) {
+        //    ManualContent = content;
+        //}
 
 
 
@@ -27,10 +27,9 @@ namespace StandardApiTools {
         /// só deve ser criado uma exceção se a resposta for de erro.
         /// <seealso cref="From(StdApiResponse, string)"/>
         /// </summary>
-        private StdApiWebException(StdApiResponse response, string additionalMessage = null)
+        private StdApiWebException(StdApiResponse response)
         : this(_defaultMsg, response.Exception) {
             Response = response;
-            AddMessage(additionalMessage);
         }
 
 
@@ -40,6 +39,8 @@ namespace StandardApiTools {
         : base (message, exception) {
             Info = new StdApiDataCollection();
             SpecialCases = new List<SpecialCase>();
+            MessageParts = new List<string>(3);
+            MessageParts.Add(message);
         }
 
 
@@ -47,24 +48,27 @@ namespace StandardApiTools {
 
         public readonly StdApiResponse Response;
         public readonly List<SpecialCase> SpecialCases;
-        private readonly string _manualMsg;
+        //private readonly string _manualMsg;
         //public string AdditionalMessage { get => _additionalMsg; set => _additionalMsg = value.TrimToNull(); }
-        private string _additionalMsg;
-        private object _manualContent;
-        private new readonly IDictionary Data;
+        //private string _additionalMsg;
+        //private readonly object ManualContent;
+        public readonly List<string> MessageParts;
 
 
 
 
-        private bool IsManuallyCreated => Response == null;
-        public override string Message => IsManuallyCreated ? _manualMsg.Join(_additionalMsg) : _defaultMsg.Join(_additionalMsg);
+        // Previne o acesso a esse mebro que não será usado.
+        private new IDictionary Data { get; }
         public StdApiDataCollection Info { get; }
+        //public bool IsManuallyCreated { get => Response == null; }
+        public override string Message { get => CompileMessage(FindCase()); }
+        //private object Content { get => CompileContent(FindCase()); }
 
 
 
 
         public StdApiWebException AddMessage(string additionalMessage) {
-            _additionalMsg = additionalMessage.TrimToNull();
+            MessageParts.Add(additionalMessage.TrimToNull());
             return this;
         }
 
@@ -91,20 +95,30 @@ namespace StandardApiTools {
         #endregion
         // Relativo a conversão para resultado
 
-        public StdApiErrorResult ToResult() {
-            if (!IsManuallyCreated && !Response.IsSuccess) return null;
-            SpecialCase? c = FindCase();
-            if (IsManuallyCreated) return GetManualResult(c);
-            return GetResultFromResponse(c);
+        private int CompileStatus(SpecialCase? c) {
+            var status = c != null
+                ? c.Value.Status
+                : (int)HttpStatusCode.FailedDependency;
+            return status;
         }
 
 
 
 
-        private StdApiErrorResult GetResultFromResponse(SpecialCase? c) {
-            var status = c != null ? c.Value.Status : (int)HttpStatusCode.FailedDependency;
-            var message = c != null ? c.Value.Message?.Invoke(Response) : Message;
-            var content = c != null ? c.Value.Content?.Invoke(Response) : new {
+        private string CompileMessage(SpecialCase? c) {
+            var message = c != null
+                ? c.Value.Message?.Invoke(Response)
+                : string.Join(Environment.NewLine, MessageParts);
+            return message;
+        }
+
+
+
+
+        private object CompileContent(SpecialCase? c) {
+            if (c != null) return c.Value.Content?.Invoke(Response);
+            //if(IsManuallyCreated) return ManualContent;
+            return new {
                 Status = Response.HttpStatus != null
                     ? (int)Response.HttpStatus
                     : (int)Response.CommStatus,
@@ -115,28 +129,61 @@ namespace StandardApiTools {
                 Data = Response.ContentAsString,
                 Uri = Response.RequestUri
             };
-            return new StdApiErrorResult(status, message, content, Info);
         }
 
 
 
 
-        private StdApiErrorResult GetManualResult(SpecialCase? c) {
-            var message = c != null ? c.Value.Message?.Invoke(null) : Message;
-            var content = c != null ? c.Value.Content?.Invoke(null) : _manualContent;
-            return new StdApiErrorResult((int)HttpStatusCode.FailedDependency, message, content, Info);
+        public StdApiErrorResult ToResult() {
+            //if (!IsManuallyCreated && !Response.IsSuccess) return null;
+            SpecialCase? c = FindCase();
+            var result = new StdApiErrorResult(CompileStatus(c), CompileMessage(c), CompileContent(c));
+            return result;
+
+            //if (IsManuallyCreated) return GetManualResult(c);
+            //return GetResultFromResponse(c);
         }
+
+
+
+
+        //private StdApiErrorResult GetResultFromResponse(SpecialCase? c) {
+        //    var status = c != null ? c.Value.Status : (int)HttpStatusCode.FailedDependency;
+        //    var message = c != null ? c.Value.Message?.Invoke(Response) : Message;
+        //    var content = c != null ? c.Value.Content?.Invoke(Response) : new {
+        //        Status = Response.HttpStatus != null
+        //            ? (int)Response.HttpStatus
+        //            : (int)Response.CommStatus,
+        //        Description = Response.HttpStatus != null
+        //            ? Response.HttpStatus.ToString()
+        //            : Response.CommStatus.ToString(),
+        //        Message = Response.CommMessage,
+        //        Data = Response.ContentAsString,
+        //        Uri = Response.RequestUri
+        //    };
+        //    return new StdApiErrorResult(status, message, content, Info);
+        //}
+
+
+
+
+        //private StdApiErrorResult GetManualResult(SpecialCase? c) {
+        //    var message = c != null ? c.Value.Message?.Invoke(null) : Message;
+        //    var content = c != null ? c.Value.Content?.Invoke(null) : _manualContent;
+        //    return new StdApiErrorResult((int)HttpStatusCode.FailedDependency, message, content, Info);
+        //}
 
 
 
 
         private SpecialCase? FindCase() {
             if (SpecialCases == null || SpecialCases.Count == 0) return null;
-            var currentStatus = IsManuallyCreated
-                ? (int)HttpStatusCode.FailedDependency
-                : (int?)Response?.CommStatus ?? (int?)Response.HttpStatus;
+            //var currentStatus = IsManuallyCreated
+            //    ? (int)HttpStatusCode.FailedDependency
+            //    : (int?)Response?.CommStatus ?? (int?)Response.HttpStatus;
+            var responseStatus = (int?)Response?.CommStatus ?? (int?)Response.HttpStatus;
             foreach (var caso in SpecialCases) {
-                var isMatch = caso.Status == currentStatus;
+                var isMatch = caso.Status == responseStatus;
                 var isConditionSatisfied = caso.Condition?.Invoke(Response) ?? true;
                 if (isMatch && isConditionSatisfied) return caso;
             }
@@ -239,9 +286,9 @@ namespace StandardApiTools {
         /// de uma <see cref="StdApiResponse"/> cujo <see cref="StdApiResponse.CommStatus"/> seja
         /// <see cref="StdApiResponse.CommunicationStatus.Success"/>
         /// </summary>
-        public static StdApiWebException From(StdApiResponse response, string additionalMessage = null) {
+        public static StdApiWebException From(StdApiResponse response) {
             if (response.IsSuccess) return null;
-            var ex = new StdApiWebException(response, additionalMessage);
+            var ex = new StdApiWebException(response);
             return ex;
         }
 
@@ -251,9 +298,9 @@ namespace StandardApiTools {
         /// <summary>
         /// Equivalente ao construtor público <see cref="StdApiWebException(string, object)"/>
         /// </summary>
-        public static StdApiWebException From(string message, object content = null) {
-            return new StdApiWebException(message, content);
-        }
+        //public static StdApiWebException From(string message, object content = null) {
+        //    return new StdApiWebException(message, content);
+        //}
 
 
 

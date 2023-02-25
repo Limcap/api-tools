@@ -8,7 +8,7 @@ namespace StandardApiTools {
     public partial class StdApiErrorResult: StdApiResult {
 
         public static StdApiErrorResult CreateFrom(Exception ex) {
-            if (ex is IProduceStdApiResult aex) {
+            if (ex is IProduceStdApiErrorResult aex) {
                 return aex.ToResult();
             }
             return new StdApiErrorResult(

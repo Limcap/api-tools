@@ -1,6 +1,6 @@
 ﻿namespace StandardApiTools {
 
-    public interface IProduceStdApiResult {
+    public interface IProduceStdApiErrorResult {
         public StdApiErrorResult ToResult();
     }
 

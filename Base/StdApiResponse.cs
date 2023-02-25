@@ -13,7 +13,7 @@ using static StandardApiTools.StdApiWebException.SpecialCase;
 
 namespace StandardApiTools {
 
-    public partial class StdApiResponse : IProduceStdApiResult {
+    public partial class StdApiResponse : IProduceStdApiErrorResult {
 
         public static async Task<StdApiResponse> FromAsync(HttpWebRequest req) {
             try {
@@ -134,7 +134,7 @@ namespace StandardApiTools {
 
 
         public StdApiWebException ToException(string additionalMessage = null) {
-            return StdApiWebException.From(this, additionalMessage);
+            return StdApiWebException.From(this).AddMessage(additionalMessage);
         }
 
 

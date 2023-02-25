@@ -2,8 +2,7 @@
 using System.Net;
 
 namespace StandardApiTools {
-
-    public class StdApiException: Exception, IProduceStdApiResult, IAddInfo {
+    public class StdApiException: Exception, IProduceStdApiErrorResult, IAddInfo {
 
         public StdApiException(Exception innerException, string message = null)
         : base(message ?? innerException.Message, innerException) {
@@ -39,7 +38,9 @@ namespace StandardApiTools {
 
 
 
-        public StdApiErrorResult ToResult() => new StdApiErrorResult(StatusCode, Message, Content, Info);
+        public StdApiErrorResult ToResult() {
+            return new StdApiErrorResult(StatusCode, Message, Content, Info);
+        }
 
 
 
