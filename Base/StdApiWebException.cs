@@ -6,32 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
-    public partial class StdApiWebException: Exception, IProduceStdApiResult {
-
-        /// <summary>
-        /// Wrapper para o contrutor privado com os mesmos parâmetros, para validar a construção,
-        /// pois não é permitido criar um StdApiWebException a partir
-        /// de uma <see cref="StdApiResponse"/> cujo <see cref="StdApiResponse.CommStatus"/> seja
-        /// <see cref="StdApiResponse.CommunicationStatus.Success"/>
-        /// </summary>
-        public static StdApiWebException From(StdApiResponse response, string additionalMessage = null) {
-            if (response.IsSuccess) return null;
-            var ex = new StdApiWebException(response, additionalMessage);
-            return ex;
-        }
-
-
-
-
-        /// <summary>
-        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object)"/>
-        /// </summary>
-        public static StdApiWebException From(string message, object content = null) {
-            return new StdApiWebException(message, content);
-        }
-
-
-
+    public partial class StdApiWebException: Exception, IProduceStdApiResult, IAddInfo {
 
         /// <summary>
         /// Constroi uma exceção a partir dos parametros informados, cujo status sempre será
@@ -39,7 +14,7 @@ namespace StandardApiTools {
         /// não for aplicado.
         /// </summary>
         public StdApiWebException(string message, object content = null)
-        : base(message) {
+        : this(message, null) {
             _manualMsg = message;
             _manualContent = content;
         }
@@ -53,7 +28,7 @@ namespace StandardApiTools {
         /// <seealso cref="From(StdApiResponse, string)"/>
         /// </summary>
         private StdApiWebException(StdApiResponse response, string additionalMessage = null)
-        : base(_defaultMsg, response.Exception) {
+        : this(_defaultMsg, response.Exception) {
             Response = response;
             AddMessage(additionalMessage);
         }
@@ -61,21 +36,30 @@ namespace StandardApiTools {
 
 
 
+        private StdApiWebException(string message, Exception exception)
+        : base (message, exception) {
+            Info = new StdApiDataCollection();
+            SpecialCases = new List<SpecialCase>();
+        }
+
+
+
+
         public readonly StdApiResponse Response;
-        public readonly List<SpecialCase> SpecialCases = new List<SpecialCase>();
-        private bool IsManuallyCreated => Response == null;
-
-        public override string Message => IsManuallyCreated ? _manualMsg.Join(_additionalMsg) : _defaultMsg.Join(_additionalMsg);
-        const string _defaultMsg = "A chamada para um serviço externo falhou.";
+        public readonly List<SpecialCase> SpecialCases;
         private readonly string _manualMsg;
-
         //public string AdditionalMessage { get => _additionalMsg; set => _additionalMsg = value.TrimToNull(); }
         private string _additionalMsg;
-
         private object _manualContent;
+        private new readonly IDictionary Data;
 
-        public StdApiDataCollection Info { get; } = new StdApiDataCollection();
-        private new readonly IDictionary Data = null;
+
+
+
+        private bool IsManuallyCreated => Response == null;
+        public override string Message => IsManuallyCreated ? _manualMsg.Join(_additionalMsg) : _defaultMsg.Join(_additionalMsg);
+        public StdApiDataCollection Info { get; }
+
 
 
 
@@ -84,15 +68,17 @@ namespace StandardApiTools {
             return this;
         }
 
+
+
+
+        void IAddInfo.AddInfo(string key, object value) => AddInfo(key, value);
         public StdApiWebException AddInfo(string key, object value) {
             Info.Add(key, value);
             return this;
         }
 
-        public StdApiWebException AddSpecialCases(params SpecialCase[] specialCases) {
-            SpecialCases.AddRange(specialCases);
-            return this;
-        }
+
+
 
         public void Throw() {
             throw this;
@@ -101,10 +87,11 @@ namespace StandardApiTools {
 
 
 
-        #region =================== metodos relativos à StdApiResult ===================
+        # region ============================================================================
         #endregion
+        // Relativo a conversão para resultado
 
-        public StdApiResult ToResult() {
+        public StdApiErrorResult ToResult() {
             if (!IsManuallyCreated && !Response.IsSuccess) return null;
             SpecialCase? c = FindCase();
             if (IsManuallyCreated) return GetManualResult(c);
@@ -114,7 +101,7 @@ namespace StandardApiTools {
 
 
 
-        private StdApiResult GetResultFromResponse(SpecialCase? c) {
+        private StdApiErrorResult GetResultFromResponse(SpecialCase? c) {
             var status = c != null ? c.Value.Status : (int)HttpStatusCode.FailedDependency;
             var message = c != null ? c.Value.Message?.Invoke(Response) : Message;
             var content = c != null ? c.Value.Content?.Invoke(Response) : new {
@@ -128,16 +115,16 @@ namespace StandardApiTools {
                 Data = Response.ContentAsString,
                 Uri = Response.RequestUri
             };
-            return new StdApiResult(status, message, content, Info);
+            return new StdApiErrorResult(status, message, content, Info);
         }
 
 
 
 
-        private StdApiResult GetManualResult(SpecialCase? c) {
+        private StdApiErrorResult GetManualResult(SpecialCase? c) {
             var message = c != null ? c.Value.Message?.Invoke(null) : Message;
             var content = c != null ? c.Value.Content?.Invoke(null) : _manualContent;
-            return new StdApiResult((int)HttpStatusCode.FailedDependency, message, content, Info);
+            return new StdApiErrorResult((int)HttpStatusCode.FailedDependency, message, content, Info);
         }
 
 
@@ -159,8 +146,14 @@ namespace StandardApiTools {
 
 
 
-        # region =================== Metodos relativos a SpecialCase ===================
+        #region ============================================================================
         #endregion
+        // Relativo a SpecialCase
+
+        public StdApiWebException AddSpecialCases(params SpecialCase[] specialCases) {
+            SpecialCases.AddRange(specialCases);
+            return this;
+        }
 
         public static R Handle<R>(Func<R> function, params Func<SpecialCase>[] caseFetchers) {
             return _HandleSync(function, _AssembleCases(caseFetchers));
@@ -186,9 +179,6 @@ namespace StandardApiTools {
             return _HandleAsync(function, cases);
         }
 
-
-
-
         private static async Task<R> _HandleAsync<R>(Func<Task<R>> function, SpecialCase[] cases) {
             try {
                 return await function();
@@ -198,9 +188,6 @@ namespace StandardApiTools {
                 throw;
             }
         }
-
-
-
 
         private static R _HandleSync<R>(Func<R> function, SpecialCase[] cases) {
             try {
@@ -238,5 +225,43 @@ namespace StandardApiTools {
         private static SpecialCase[] _AssembleCases(Func<SpecialCase>[] caseFetchers) {
             return caseFetchers.Select(c => c()).ToArray();
         }
+
+
+
+
+        #region ============================================================================
+        #endregion
+        // Static
+
+        /// <summary>
+        /// Wrapper para o contrutor privado com os mesmos parâmetros, para validar a construção,
+        /// pois não é permitido criar um StdApiWebException a partir
+        /// de uma <see cref="StdApiResponse"/> cujo <see cref="StdApiResponse.CommStatus"/> seja
+        /// <see cref="StdApiResponse.CommunicationStatus.Success"/>
+        /// </summary>
+        public static StdApiWebException From(StdApiResponse response, string additionalMessage = null) {
+            if (response.IsSuccess) return null;
+            var ex = new StdApiWebException(response, additionalMessage);
+            return ex;
+        }
+
+
+
+
+        /// <summary>
+        /// Equivalente ao construtor público <see cref="StdApiWebException(string, object)"/>
+        /// </summary>
+        public static StdApiWebException From(string message, object content = null) {
+            return new StdApiWebException(message, content);
+        }
+
+
+
+
+        #region ============================================================================
+        #endregion
+        // Contantes
+
+        private const string _defaultMsg = "A chamada para um serviço externo falhou.";
     }
 }

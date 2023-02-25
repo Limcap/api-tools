@@ -3,7 +3,7 @@
 namespace StandardApiTools {
 
     /// <summary>
-    /// Filtro de execução de contexto que converte criar um <see cref="StdApiResult"/>
+    /// Filtro de execução de contexto que converte criar um <see cref="StdApiErrorResult"/>
     /// para o contexto caso ele ainda tenha uma exceção não tratada.
     /// </summary>
     /// <remarks>
@@ -21,14 +21,14 @@ namespace StandardApiTools {
         public static void HandleExceptions(ActionExecutedContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
                 context.Exception = context.Exception.Deaggregate();
-                context.Result = StdApiResult.From(context.Exception);
+                context.Result = StdApiErrorResult.CreateFrom(context.Exception);
                 context.ExceptionHandled = true;
             }
         }
         public static void HandleExceptions(ExceptionContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
                 context.Exception = context.Exception.Deaggregate();
-                context.Result = StdApiResult.From(context.Exception);
+                context.Result = StdApiErrorResult.CreateFrom(context.Exception);
                 context.ExceptionHandled = true;
             }
         }

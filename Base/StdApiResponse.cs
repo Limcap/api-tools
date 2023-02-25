@@ -140,15 +140,15 @@ namespace StandardApiTools {
 
 
 
-        public StdApiResult ToResult() {
-            return new StdApiResult(this);
+        public StdApiErrorResult ToResult() {
+            return new StdApiErrorResult(this);
         }
 
 
 
 
-        public StdApiResult ToResult(string message) {
-            return new StdApiResult(this, message);
+        public StdApiErrorResult ToResult(string message) {
+            return new StdApiErrorResult(this, message);
         }
 
 

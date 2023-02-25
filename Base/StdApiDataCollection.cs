@@ -9,24 +9,20 @@ using System.Text.Json;
 
 namespace StandardApiTools {
 
-    public interface IStdApiDataCollection {
-        int Count { get; }
-        ICollection<string> Keys { get; }
-
-        void Add(KeyValuePair<string, object> entry);
-        void Add(string key, object value);
-        void Clear();
-        bool ContainsKey(string key);
-        object Get(string key);
-        void Set(string key, object value);
-        string ToJson();
-        object ToObject(bool ignoreNullValues = false);
-    }
-
-    public class StdApiDataCollection: IStdApiDataCollection, IEnumerable<KeyValuePair<string, object>> { 
+    public class StdApiDataCollection: IEnumerable<KeyValuePair<string, object>> { 
 
         public StdApiDataCollection(IDictionary<string, object> source = null) {
             dict = source ?? new Dictionary<string, object>();
+        }
+
+        public StdApiDataCollection(params KeyValuePair<string, object>[] items) {
+            dict = new Dictionary<string, object>();
+            foreach(var item in items) dict.Add(item);
+        }
+
+        public StdApiDataCollection(params (string key, object value)[] items) {
+            dict = new Dictionary<string, object>();
+            foreach (var item in items) Add(item.key, item.value);
         }
 
 
@@ -50,7 +46,7 @@ namespace StandardApiTools {
         public void Add(KeyValuePair<string, object> entry) => Add(entry.Key, entry.Value);
         public void Add(string key, object value) {
             if (dict.ContainsKey(key)) {
-                GetOrCreateList(key).Add(value);
+                _GetOrSetList(key).Add(value);
             }
             else {
                 dict.Add(key, value);
@@ -60,7 +56,7 @@ namespace StandardApiTools {
 
 
 
-        private List<object> GetOrCreateList(string key) {
+        private List<object> _GetOrSetList(string key) {
             var currentValue = dict[key];
             List<object> list;
             if (currentValue is List<object> currentList) {
@@ -102,10 +98,21 @@ namespace StandardApiTools {
 
 
         public object ToObject(bool ignoreNullValues = false) {
+            var items = ignoreNullValues
+                ? dict.Where(i => i.Value != null).ToList()
+                : dict.ToList();
+            if (items.Count == 0) return null;
             var eo = new ExpandoObject();
             var eoc = (ICollection<KeyValuePair<string, object>>)eo;
-            foreach (var item in dict) if (!ignoreNullValues || item.Value != null) eoc.Add(item);
+            foreach (var item in items) eoc.Add(item);
             return eo;
+        }
+
+
+
+
+        public static implicit operator StdApiDataCollection(Dictionary<string, object> source) {
+            return new StdApiDataCollection(source);
         }
 
 

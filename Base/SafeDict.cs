@@ -4,9 +4,9 @@ using System.Dynamic;
 using System.Text.Json;
 
 namespace StandardApiTools {
-    public class SafeDict: IEnumerable<KeyValuePair<string, object>> {
+    public class AutoDict: IEnumerable<KeyValuePair<string, object>> {
 
-        public SafeDict(IDictionary<string, object> source = null) {
+        public AutoDict(IDictionary<string, object> source = null) {
             dict = source ?? new Dictionary<string, object>();
         }
 
@@ -97,7 +97,7 @@ namespace StandardApiTools {
 
 
 
-        public void FillReservedKeys(StdApiResult result) {
+        public void FillReservedKeys(StdApiErrorResult result) {
             dict.TryAdd("message", result.Message);
             dict["message"] = result.Message;
             dict.TryAdd("content", result.Content);

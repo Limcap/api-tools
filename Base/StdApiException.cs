@@ -3,7 +3,7 @@ using System.Net;
 
 namespace StandardApiTools {
 
-    public class StdApiException: Exception, IProduceStdApiResult {
+    public class StdApiException: Exception, IProduceStdApiResult, IAddInfo {
 
         public StdApiException(Exception innerException, string message = null)
         : base(message ?? innerException.Message, innerException) {
@@ -34,17 +34,27 @@ namespace StandardApiTools {
 
         public readonly int StatusCode;
         public readonly object Content;
+        public StdApiDataCollection Info = new StdApiDataCollection();
 
 
 
 
-        public StdApiResult ToResult() => new StdApiResult(StatusCode, Message, Content);
+        public StdApiErrorResult ToResult() => new StdApiErrorResult(StatusCode, Message, Content, Info);
 
 
 
 
         public void Throw() {
             throw this;
+        }
+
+
+
+
+        void IAddInfo.AddInfo(string key, object value) => AddInfo(key, value);
+        public StdApiException AddInfo(string key, object value) {
+            Info.Add(key, value);
+            return this;
         }
     }
 }
