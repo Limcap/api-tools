@@ -140,20 +140,6 @@ namespace StandardApiTools {
 
 
 
-        public StdApiErrorResult ToResult() {
-            return new StdApiErrorResult(this);
-        }
-
-
-
-
-        public StdApiErrorResult ToResult(string message) {
-            return new StdApiErrorResult(this, message);
-        }
-
-
-
-
         public DesserializationResult<T> TryDeserialize<T>(JsonSerializerOptions options = null) {
             try {
                 options ??= new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -164,5 +150,12 @@ namespace StandardApiTools {
                 return new DesserializationResult<T>(ex);
             }
         }
+
+
+
+
+        public StdApiErrorResult ToResult(string message) => new StdApiErrorResult(this, message);
+        public StdApiErrorResult ToResult() => new StdApiErrorResult(this);
+        StdApiResult IProduceStdApiResult.ToResult() => ToResult();
     }
 }

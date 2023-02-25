@@ -28,20 +28,12 @@ namespace StandardApiTools {
 
 
 
-        public virtual void AddMessage(string value) {
-            MessageParts.Add(value.Trim());
-        }
+        public virtual void AddMessage(string value) => MessageParts.Add(value.Trim());
 
 
 
 
-        void IAddInfo.AddInfo(string key, object value) {
-            AddInfo(key, value);
-        }
-
-
-
-
+        void IAddInfo.AddInfo(string key, object value) => AddInfo(key, value);
         public virtual StdApiExceptionBase AddInfo(string key, object value) {
             Info.Add(key, value);
             return this;
@@ -50,15 +42,12 @@ namespace StandardApiTools {
 
 
 
-        public virtual StdApiErrorResult ToResult() {
-            return new StdApiErrorResult(StatusCode, Message, Content, Info);
-        }
+        public void Throw() => throw this;
+        public virtual StdApiErrorResult ToResult() => new StdApiErrorResult(StatusCode, Message, Content, Info);
+        StdApiResult IProduceStdApiResult.ToResult() => ToResult();
 
 
 
-
-        public void Throw() {
-            throw this;
-        }
+        public Func<StdApiResult> ResultConverter;
     }
 }
