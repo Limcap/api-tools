@@ -22,7 +22,7 @@ namespace StandardApiTools {
 
 
         public StdApiErrorResult(int status, string message, object content = null, StdApiDataCollection info = null, bool? suppressNullValues = null) {
-            Status = status;
+            StatusCode = status;
             Message = message;
             Content = content;
             Info = info;

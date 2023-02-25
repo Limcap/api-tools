@@ -152,9 +152,9 @@ namespace StandardApiTools {
 
 
 
-        public static T ApplySpecialCase<T>(this Func<T> func, StdApiWebException.SpecialCase[] cases) {
-            return StdApiWebException.Handle(func, cases);
-        }
+        //public static T ApplySpecialCase<T>(this Func<T> func, StdApiWebException.SpecialCase[] cases) {
+        //    return StdApiWebException.Handle(func, cases);
+        //}
 
 
 

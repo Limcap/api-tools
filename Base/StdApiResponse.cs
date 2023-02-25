@@ -41,7 +41,7 @@ namespace StandardApiTools {
 
 
 
-        public Exception Exception { get; }
+        public WebException Exception { get; }
         public string CommMessage { get; }
         public CommunicationStatus CommStatus { get; }
         public HttpStatusCode? HttpStatus { get; }

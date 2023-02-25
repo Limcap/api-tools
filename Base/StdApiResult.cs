@@ -9,17 +9,17 @@ namespace StandardApiTools {
         protected StdApiResult() { }
 
         public StdApiResult(HttpStatusCode status, object content) {
-            Status = (int)status;
+            StatusCode = (int)status;
             CompiledResultObject = content;
         }
 
-        public int Status;
+        public int StatusCode;
         public object CompiledResultObject;
 
         public virtual async Task ExecuteResultAsync(ActionContext context) {
             var r = new JsonResult(CompiledResultObject) {
                 ContentType = "application/json",
-                StatusCode = Status
+                StatusCode = StatusCode
             };
             await r.ExecuteResultAsync(context);
         }

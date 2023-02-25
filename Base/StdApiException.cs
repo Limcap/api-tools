@@ -1,13 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Net;
 
 namespace StandardApiTools {
     public class StdApiException: Exception, IProduceStdApiErrorResult, IAddInfo {
 
+        protected StdApiException(WebException innerException, string message = null)
+        : base(message, innerException) { }
+
+
+
+
         public StdApiException(Exception innerException, string message = null)
         : base(message ?? innerException.Message, innerException) {
             StatusCode = 500;
             Content = innerException.ToString();
+            Info = new StdApiDataCollection();
         }
 
 
@@ -17,6 +25,7 @@ namespace StandardApiTools {
         : base(message) {
             StatusCode = 500;
             Content = content;
+            Info = new StdApiDataCollection();
         }
 
 
@@ -26,19 +35,22 @@ namespace StandardApiTools {
         : base(message ?? code.ToString()) {
             StatusCode = (int)code;
             Content = content;
+            Info = new StdApiDataCollection();
         }
 
 
 
 
-        public readonly int StatusCode;
-        public readonly object Content;
-        public StdApiDataCollection Info = new StdApiDataCollection();
+        public virtual int StatusCode { get; }
+        //public override string Message { get => base.Message; }
+        public virtual object Content { get; }
+        public virtual StdApiDataCollection Info { get; protected set; }
+        private new IDictionary Data { get; }
 
 
 
 
-        public StdApiErrorResult ToResult() {
+        public virtual StdApiErrorResult ToResult() {
             return new StdApiErrorResult(StatusCode, Message, Content, Info);
         }
 
@@ -53,7 +65,7 @@ namespace StandardApiTools {
 
 
         void IAddInfo.AddInfo(string key, object value) => AddInfo(key, value);
-        public StdApiException AddInfo(string key, object value) {
+        public virtual StdApiException AddInfo(string key, object value) {
             Info.Add(key, value);
             return this;
         }
