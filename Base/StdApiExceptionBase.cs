@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 
 namespace StandardApiTools {
-    public abstract class StdApiExceptionBase: Exception, IProduceStdApiErrorResult, IAddInfo {
+    public abstract class StdApiExceptionBase: Exception, IProduceStdApiErrorResult {
 
         protected StdApiExceptionBase(string message, Exception ex = null) : base(message, ex) {
             MessageParts = new List<string>(3);
             if (message != null) MessageParts.Add(message);
-            Info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 
 
@@ -15,6 +14,7 @@ namespace StandardApiTools {
 
         protected int statusCode;
         protected object content;
+        protected object info;
         public readonly List<string> MessageParts;
 
 
@@ -23,21 +23,12 @@ namespace StandardApiTools {
         public virtual int StatusCode { get => statusCode; } //protected set => statusCode = value;
         public override string Message { get => string.Join(Environment.NewLine, MessageParts); }
         public virtual object Content { get => content; set => content = value; }
-        public virtual StdApiDataCollection Info { get; }
+        public virtual object Info { get => info; set => info = value; }
 
 
 
 
         public virtual void AddMessage(string value) => MessageParts.Add(value.Trim());
-
-
-
-
-        void IAddInfo.AddInfo(string key, object value) => AddInfo(key, value);
-        public virtual StdApiExceptionBase AddInfo(string key, object value) {
-            Info.Add(key, value);
-            return this;
-        }
 
 
 
@@ -48,6 +39,6 @@ namespace StandardApiTools {
 
 
 
-        public Func<StdApiResult> ResultConverter;
+        public Func<StdApiExceptionBase, StdApiResult> ResultConverter { get; set; }
     }
 }

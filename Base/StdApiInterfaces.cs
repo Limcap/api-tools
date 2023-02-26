@@ -11,6 +11,6 @@
 
 
     public interface IAddInfo {
-        public void AddInfo(string key, object value);
+        public IAddInfo AddInfo(string key, object value);
     }
 }

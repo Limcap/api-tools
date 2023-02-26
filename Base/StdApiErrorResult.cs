@@ -21,7 +21,7 @@ namespace StandardApiTools {
 
 
 
-        public StdApiErrorResult(int status, string message, object content = null, StdApiDataCollection info = null, bool? suppressNullValues = null) {
+        public StdApiErrorResult(int status, string message, object content = null, object info = null, bool? suppressNullValues = null) {
             StatusCode = status;
             Message = message;
             Content = content;

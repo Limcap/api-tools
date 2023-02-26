@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace StandardApiTools {
 
-    public class StdApiException: StdApiExceptionBase {
+    public class StdApiException: StdApiExceptionBase, IAddInfo {
 
         protected StdApiException(WebException innerException, string message = null)
-        : base(message, innerException) { }
+        : base(message, innerException) {
+            this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
+        }
 
 
 
@@ -15,6 +18,7 @@ namespace StandardApiTools {
         : base(message ?? innerException.Message, innerException) {
             this.statusCode = 500;
             this.content = innerException.ToString();
+            this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 
 
@@ -24,6 +28,7 @@ namespace StandardApiTools {
         : base(message) {
             this.statusCode = 500;
             this.content = content;
+            this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 
 
@@ -33,6 +38,7 @@ namespace StandardApiTools {
         : base(message ?? code.ToString()) {
             this.statusCode = (int)code;
             this.content = content;
+            this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 
 
@@ -46,9 +52,25 @@ namespace StandardApiTools {
 
 
 
-        public new StdApiException AddInfo(string key, object value) {
+        public new StdApiDataCollection Info { get => info as StdApiDataCollection; }
+        
+
+
+
+        IAddInfo IAddInfo.AddInfo(string key, object value) => AddInfo(key, value);
+        public virtual StdApiException AddInfo(string key, object value) {
             Info.Add(key, value);
             return this;
         }
+
+
+        //public override StdApiErrorResult ToResult() {
+        //    return new StdApiErrorResult(StatusCode, Message, Content, Info);
+        //    var info = (Info as StdApiDataCollection)?.ToObject(SupressNullValues);
+        //}
+
+
+
+        public new Func<StdApiException, StdApiResult> ResultConverter { get; set; }
     }
 }
