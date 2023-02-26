@@ -89,12 +89,6 @@ namespace StandardApiTools {
 
 
 
-
-        public new Func<StdApiException, StdApiResult> ResultConverter { get; set; }
-
-
-
-
         #region ============================================================================
         #endregion
 

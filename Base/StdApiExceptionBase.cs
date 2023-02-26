@@ -36,9 +36,5 @@ namespace StandardApiTools {
         public void Throw() => throw this;
         public virtual StdApiErrorResult ToResult() => new StdApiErrorResult(StatusCode, Message, Content, Info);
         StdApiResult IProduceStdApiResult.ToResult() => ToResult();
-
-
-
-        public Func<StdApiExceptionBase, StdApiResult> ResultConverter { get; set; }
     }
 }

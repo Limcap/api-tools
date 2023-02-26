@@ -62,15 +62,5 @@ namespace StandardApiTools {
             Info.Add(key, value);
             return this;
         }
-
-
-        //public override StdApiErrorResult ToResult() {
-        //    return new StdApiErrorResult(StatusCode, Message, Content, Info);
-        //    var info = (Info as StdApiDataCollection)?.ToObject(SupressNullValues);
-        //}
-
-
-
-        public new Func<StdApiException, StdApiResult> ResultConverter { get; set; }
     }
 }
