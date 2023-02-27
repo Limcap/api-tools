@@ -33,5 +33,26 @@ namespace StandardApiTools {
             ex.Info.Add(key, value);
             return ex;
         }
+
+
+
+
+        //public static E SetContentType<E, T>(this E ex, JsonSerializerOptions opt = null) where E : StdApiException {
+        //    if (ex.Content == null) return ex;
+        //    try {
+        //        var json = ex.Content as string ?? JsonSerializer.Serialize(ex.Content, opt);
+        //        ex.Content = JsonSerializer.Deserialize<T>(json, opt);
+        //    }
+        //    catch (Exception e) {
+        //        ex.Info.Add(
+        //            "Erro de desserialização",
+        //            "O conteúdo está apresentado no formato cru, pois não foi possível " +
+        //            "desserializá-lo. " + Environment.NewLine + e.Message
+        //        );
+        //        //try { ex.Content = JsonSerializer.Deserialize<object>(str, opt); }
+        //        //catch { }
+        //    }
+        //    return ex;
+        //}
     }
 }

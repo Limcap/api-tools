@@ -106,7 +106,7 @@ namespace StandardApiTools {
                     ? Response.HttpStatus.ToString()
                     : Response.CommStatus.ToString(),
                 Message = Response.CommMessage,
-                Content = Response.ContentAsString,
+                Content = ContentDeserializer(Response.ContentAsString),
                 Uri = Response.RequestUri
             };
         }
@@ -114,12 +114,26 @@ namespace StandardApiTools {
 
 
 
-        //public new StdApiException SetCustomResultType<T>()
-        //where T : IErrorToResultConverter<StdApiWebException>, new() {
-        //    var t = new T { Exception = this };
-        //    CustomResultMaker = t;
-        //    return this;
-        //}
+        private Func<string, object> ContentDeserializer = s => JsonSerializer.Serialize(s);
+        public StdApiException SetContentType<T>(JsonSerializerOptions opt = null) {
+            var s = Response?.ContentAsString;
+            ContentDeserializer = s => {
+                try {
+                    s = s.TrimToNull();
+                    if (s == null || s[0] != '{' && s[0] != '[') return s;
+                    return JsonSerializer.Deserialize<T>(s, opt);
+                }
+                catch (Exception e) {
+                    Info.Add(
+                        "Erro de desserialização",
+                        "O conteúdo está apresentado no formato cru, pois não foi possível " +
+                        "desserializá-lo. " + Environment.NewLine + e.Message
+                    );
+                    return s;
+                }
+            };
+            return this;
+        }
 
 
 
