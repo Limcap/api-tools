@@ -44,10 +44,11 @@ namespace StandardApiTools {
 
 
 
-        public new StdApiException AddMessage(string value) {
-            MessageParts.Add(value.Trim());
-            return this;
-        }
+        //migrado para extensao
+        //public new StdApiException AddMessage(string value) {
+        //    MessageParts.Add(value.Trim());
+        //    return this;
+        //}
 
 
 
@@ -57,10 +58,22 @@ namespace StandardApiTools {
 
 
 
-        IAddInfo IAddInfo.AddInfo(string key, object value) => AddInfo(key, value);
-        public virtual StdApiException AddInfo(string key, object value) {
-            Info.Add(key, value);
-            return this;
-        }
+        IAddInfo IAddInfo.AddInfo(string key, object value) => this.AddInfo(key, value);
+
+        //migrado para extensao
+        //public virtual StdApiException AddInfo(string key, object value) {
+        //    Info.Add(key, value);
+        //    return this;
+        //}
+
+
+
+
+        //public new StdApiException SetCustomResultType<T>()
+        //where T : IErrorToResultConverter<StdApiException>, new() {
+        //    var t = new T { Exception = this };
+        //    CustomResultMaker = t;
+        //    return this;
+        //}
     }
 }

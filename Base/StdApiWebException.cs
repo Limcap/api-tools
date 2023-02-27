@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
@@ -15,7 +16,7 @@ namespace StandardApiTools {
             Response = response;
             //content = response.ContentAsString;
             //statusCode = (int) HttpStatusCode.FailedDependency;
-            AddMessage(_defaultMsg);
+            this.AddMessage(_defaultMsg);
         }
 
 
@@ -37,34 +38,57 @@ namespace StandardApiTools {
 
 
 
-        public StdApiWebException SetMessage(string message) {
-            MessageParts.Clear();
-            MessageParts.Add(message.TrimToNull());
-            return this;
-        }
+        //migrado para extensao
+        //public StdApiWebException SetMessage(string message) {
+        //    MessageParts.Clear();
+        //    MessageParts.Add(message.TrimToNull());
+        //    return this;
+        //}
 
 
 
 
-        public new StdApiWebException AddMessage(string message) {
-            MessageParts.Add(message.TrimToNull());
-            return this;
-        }
+        //migrado para extensao
+        //public new StdApiWebException AddMessage(string message) {
+        //    MessageParts.Add(message.TrimToNull());
+        //    return this;
+        //}
 
 
 
 
-        public StdApiWebException SetContent(string content) {
-            this.content = content;
-            return this;
-        }
+        //migrado para extensao
+        //public StdApiWebException SetContent(object content) {
+        //    this.content = content;
+        //    return this;
+        //}
 
 
 
-        public new StdApiWebException AddInfo(string key, object value) {
-            Info.Add(key, value);
-            return this;
-        }
+        //migrado para extensao
+        //public StdApiWebException DesserializeContent<T>(JsonSerializerOptions opt = null) {
+        //    if(content is string str){
+        //        try {
+        //            content = JsonSerializer.Deserialize<T>(str, opt);
+        //        }
+        //        catch (Exception e) {
+        //            Info.Add(
+        //                "Erro de desserialização",
+        //                "O conteúdo está apresentado na forma inicial, pois não foi possível desserializá-lo para o formato definido."
+        //            );
+        //            content = JsonSerializer.Deserialize<object>(str);
+        //        }
+        //    }
+        //    return this;
+        //}
+
+
+
+        //migrado para extensao
+        //public new StdApiWebException AddInfo(string key, object value) {
+        //    Info.Add(key, value);
+        //    return this;
+        //}
 
 
 
@@ -82,10 +106,20 @@ namespace StandardApiTools {
                     ? Response.HttpStatus.ToString()
                     : Response.CommStatus.ToString(),
                 Message = Response.CommMessage,
-                Data = Response.ContentAsString,
+                Content = Response.ContentAsString,
                 Uri = Response.RequestUri
             };
         }
+
+
+
+
+        //public new StdApiException SetCustomResultType<T>()
+        //where T : IErrorToResultConverter<StdApiWebException>, new() {
+        //    var t = new T { Exception = this };
+        //    CustomResultMaker = t;
+        //    return this;
+        //}
 
 
 
