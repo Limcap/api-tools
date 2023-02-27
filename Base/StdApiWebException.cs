@@ -99,12 +99,12 @@ namespace StandardApiTools {
 
         private object CompileContent() {
             return new StdApiWebExceptionDetails {
-                InternalStatus = Response.HttpStatus != null
+                Status = Response.HttpStatus != null
                     ? (int)Response.HttpStatus
                     : (int)Response.CommStatus,
-                Description = Response.HttpStatus != null
-                    ? Response.HttpStatus.ToString()
-                    : Response.CommStatus.ToString(),
+                //StatusDescription = Response.HttpStatus != null
+                //    ? Response.HttpStatus.ToString()
+                //    : Response.CommStatus.ToString(),
                 Message = Response.CommMessage,
                 Details = ContentDeserializer(Response.ContentAsString),
                 Uri = Response.RequestUri
@@ -233,8 +233,8 @@ namespace StandardApiTools {
 
     public class StdApiWebExceptionDetails: StdApiWebExceptionDetails<object> { }
     public class StdApiWebExceptionDetails<T> {
-        public int InternalStatus { get; set; }
-        public string Description { get; set; }
+        public int Status { get; set; }
+        //public string StatusDescription { get => Status.ToString(); }
         public string Message { get; set; }
         public T Details { get; set; }
         public Uri Uri { get; set; }
