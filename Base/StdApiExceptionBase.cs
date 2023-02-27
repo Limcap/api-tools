@@ -28,27 +28,16 @@ namespace StandardApiTools {
 
 
 
-        public virtual void AddMessage(string value) => MessageParts.Add(value.Trim());
+        //migrado para extensao
+        //public virtual void AddMessage(string value) => MessageParts.Add(value.Trim());
 
 
 
 
         public void Throw() => throw this;
 
+        public StdApiErrorResult ToResult() => new StdApiErrorResult(StatusCode, Message, Content, Info);
 
-
-
-        protected IProduceStdApiErrorResult CustomResultMaker { get; set; }
-        //public virtual StdApiExceptionBase SetCustomResultType<T>()
-        //where T : IErrorToResultConverter<StdApiExceptionBase>, new() {
-        //    var t = new T { Exception = this };
-        //    CustomResultMaker = t;
-        //    return this;
-        //}
         StdApiResult IProduceStdApiResult.ToResult() => ToResult();
-        public virtual StdApiErrorResult ToResult() {
-            if (CustomResultMaker != null) return CustomResultMaker.ToResult();
-            return new StdApiErrorResult(StatusCode, Message, Content, Info);
-        }
     }
 }
