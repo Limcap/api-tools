@@ -23,10 +23,10 @@ namespace StandardApiTools {
 
 
 
-        public StdApiErrorResult(int status, string message, object content = null, object info = null, bool? suppressNullValues = null) {
+        public StdApiErrorResult(int status, string message, object details = null, object info = null, bool? suppressNullValues = null) {
             StatusCode = status;
             Message = message;
-            Content = content;
+            Details = details;
             Info = info;
             SupressNullValues = suppressNullValues ?? SupressNullValuesFromResults;
         }
@@ -47,7 +47,7 @@ namespace StandardApiTools {
 
 
         public string Message { get; private set; }
-        public object Content { get; private set; }
+        public object Details { get; private set; }
         public object Info { get; private set; }
 
 
@@ -72,8 +72,8 @@ namespace StandardApiTools {
             var eoc = (ICollection<KeyValuePair<string, object>>)eo;
             if (!SupressNullValues || Message != null)
                 eoc.Add(new KeyValuePair<string, object>(MessageKeyName, Message));
-            if (!SupressNullValues || Content != null)
-                eoc.Add(new KeyValuePair<string, object>(ContentKeyName, Content));
+            if (!SupressNullValues || Details != null)
+                eoc.Add(new KeyValuePair<string, object>(DetailsKeyName, Details));
             var info = (Info as StdApiDataCollection)?.ToObject(SupressNullValues) ?? Info;
             if (!SupressNullValues || Info != null)
                 eoc.Add(new KeyValuePair<string, object>(InfoKeyName, info));
@@ -93,7 +93,7 @@ namespace StandardApiTools {
 
         public static bool SupressNullValuesFromResults = false;
         public static string MessageKeyName = "message";
-        public static string ContentKeyName = "content";
+        public static string DetailsKeyName = "details";
         public static string InfoKeyName = "info";
     }
 }

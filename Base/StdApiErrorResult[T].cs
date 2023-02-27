@@ -18,7 +18,7 @@ namespace StandardApiTools {
     /// </remarks>
     public abstract class StdApiErrorResult<T>: StdApiResult {
         public string Message { get; private set; }
-        public T Content { get; private set; }
+        public T Details { get; private set; }
         public object Info { get; private set; }
     }
 }

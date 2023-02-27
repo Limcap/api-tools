@@ -18,27 +18,27 @@ namespace StandardApiTools {
         public StdApiException(Exception innerException, string message = null)
         : base(message ?? innerException.Message, innerException) {
             this.statusCode = 500;
-            this.content = innerException.ToString();
+            this.details = innerException.ToString();
             this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 
 
 
 
-        public StdApiException(string message, object content = null)
+        public StdApiException(string message, object details = null)
         : base(message) {
             this.statusCode = 500;
-            this.content = content;
+            this.details = details;
             this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 
 
 
 
-        public StdApiException(HttpStatusCode code, string message = null, object content = null)
+        public StdApiException(HttpStatusCode code, string message = null, object details = null)
         : base(message ?? code.ToString()) {
             this.statusCode = (int)code;
-            this.content = content;
+            this.details = details;
             this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 

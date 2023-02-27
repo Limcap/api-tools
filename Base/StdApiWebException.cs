@@ -30,9 +30,9 @@ namespace StandardApiTools {
         public override int StatusCode {
             get => UseResponseStatusCode ? Response.StatusCode : (int)HttpStatusCode.FailedDependency;
         }
-        public override object Content {
-            get => content != null ? content : CompileContent();
-            set => content = value;
+        public override object Details {
+            get => details != null ? details : CompileContent();
+            set => details = value;
         }
 
 
@@ -98,15 +98,15 @@ namespace StandardApiTools {
         // Relativo a conversão para resultado
 
         private object CompileContent() {
-            return new Details<object> {
-                Status = Response.HttpStatus != null
+            return new StdApiWebExceptionDetails {
+                InternalStatus = Response.HttpStatus != null
                     ? (int)Response.HttpStatus
                     : (int)Response.CommStatus,
                 Description = Response.HttpStatus != null
                     ? Response.HttpStatus.ToString()
                     : Response.CommStatus.ToString(),
                 Message = Response.CommMessage,
-                Content = ContentDeserializer(Response.ContentAsString),
+                Details = ContentDeserializer(Response.ContentAsString),
                 Uri = Response.RequestUri
             };
         }
@@ -215,14 +215,21 @@ namespace StandardApiTools {
         // Contantes
 
         private const string _defaultMsg = "A chamada para um serviço externo falhou.";
+    }
 
 
-        public class Details<T> {
-            public int Status { get; set; }
-            public string Description { get; set; }
-            public string Message { get; set; }
-            public T Content { get; set; }
-            public Uri Uri { get; set; }
-        }
+
+
+
+
+
+
+    public class StdApiWebExceptionDetails: StdApiWebExceptionDetails<object> { }
+    public class StdApiWebExceptionDetails<T> {
+        public int InternalStatus { get; set; }
+        public string Description { get; set; }
+        public string Message { get; set; }
+        public T Details { get; set; }
+        public Uri Uri { get; set; }
     }
 }

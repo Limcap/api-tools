@@ -13,7 +13,7 @@ namespace StandardApiTools {
 
 
         protected int statusCode;
-        protected object content;
+        protected object details;
         protected object info;
         public readonly List<string> MessageParts;
 
@@ -22,7 +22,7 @@ namespace StandardApiTools {
 
         public virtual int StatusCode { get => statusCode; } //protected set => statusCode = value;
         public override string Message { get => string.Join(Environment.NewLine, MessageParts); }
-        public virtual object Content { get => content; set => content = value; }
+        public virtual object Details { get => details; set => details = value; }
         public virtual object Info { get => info; set => info = value; }
 
 
@@ -36,7 +36,7 @@ namespace StandardApiTools {
 
         public void Throw() => throw this;
 
-        public StdApiErrorResult ToResult() => new StdApiErrorResult(StatusCode, Message, Content, Info);
+        public StdApiErrorResult ToResult() => new StdApiErrorResult(StatusCode, Message, Details, Info);
 
         StdApiResult IProduceStdApiResult.ToResult() => ToResult();
     }
