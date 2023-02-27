@@ -6,6 +6,7 @@ namespace StandardApiTools {
 
     public class StdApiException: StdApiExceptionBase, IAddInfo {
 
+        //Construtor pretected, somente para StdApiWebException
         protected StdApiException(WebException innerException, string message = null)
         : base(message, innerException) {
             this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
@@ -74,6 +75,17 @@ namespace StandardApiTools {
         //    var t = new T { Exception = this };
         //    CustomResultMaker = t;
         //    return this;
+
+
+
+
+        //public class Details {
+        //    public Details(Exception ex) {
+        //        Message = ex.Message;
+        //        Content = ex.ToString();
+        //    }
+        //    public string Message { get; set; }
+        //    public string Content { get; set; }
         //}
     }
 }

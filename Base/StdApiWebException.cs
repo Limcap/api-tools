@@ -98,7 +98,7 @@ namespace StandardApiTools {
         // Relativo a conversão para resultado
 
         private object CompileContent() {
-            return new {
+            return new Details<object> {
                 Status = Response.HttpStatus != null
                     ? (int)Response.HttpStatus
                     : (int)Response.CommStatus,
@@ -215,5 +215,14 @@ namespace StandardApiTools {
         // Contantes
 
         private const string _defaultMsg = "A chamada para um serviço externo falhou.";
+
+
+        public class Details<T> {
+            public int Status { get; set; }
+            public string Description { get; set; }
+            public string Message { get; set; }
+            public T Content { get; set; }
+            public Uri Uri { get; set; }
+        }
     }
 }
