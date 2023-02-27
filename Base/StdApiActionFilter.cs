@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
+using System;
 
 namespace StandardApiTools {
 
@@ -18,32 +19,44 @@ namespace StandardApiTools {
         /// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="EasyResponseResult(Exception)"/> caso
         /// exista uma exceção não tratada no contexto.
         /// </summary>
-        public static void HandleExceptions(ActionExecutedContext context) {
+        public static void HandleException(ActionExecutedContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
-                context.Exception = context.Exception.Deaggregate();
-                //context.Result = StdApiErrorResult.CreateFrom(context.Exception);
-                context.Result = context.Exception is IProduceStdApiResult pr
-                ? pr.ToResult()
-                : new StdApiException(context.Exception, "Ocorreu um erro não identificado durante o processamento.").ToResult();
+                var result = GetResultFromException(context.Exception);
+                if (result == null) return;
+                context.Result = result;
                 context.ExceptionHandled = true;
             }
         }
+
+
+
+
         public static void HandleExceptions(ExceptionContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
-                context.Exception = context.Exception.Deaggregate();
-                //context.Result = StdApiErrorResult.CreateFrom(context.Exception);
-                context.Result = context.Exception is IProduceStdApiResult pr
-                ? pr.ToResult()
-                : new StdApiException(context.Exception, "Ocorreu um erro não identificado durante o processamento.").ToResult();
+                var result = GetResultFromException(context.Exception);
+                if (result == null) return;
+                context.Result = result;
                 context.ExceptionHandled = true;
             }
+        }
+
+
+
+
+        public static StdApiErrorResult GetResultFromException(Exception ex) {
+            if (ex == null) return null;
+            ex = ex.Deaggregate();
+            var result = ex is IProduceStdApiErrorResult pr
+            ? pr.ToResult()
+            : new StdApiException(ex, "Ocorreu um erro não identificado durante o processamento.").ToResult();
+            return result;
         }
 
 
 
 
         public override void OnActionExecuted(ActionExecutedContext context) {
-            HandleExceptions(context);
+            HandleException(context);
             base.OnActionExecuted(context);
         }
     }
