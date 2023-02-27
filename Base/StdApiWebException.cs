@@ -215,6 +215,13 @@ namespace StandardApiTools {
         // Contantes
 
         private const string _defaultMsg = "A chamada para um serviço externo falhou.";
+
+
+
+
+        public static StdApiException CreateManually(object details) {
+            return new StdApiException(HttpStatusCode.FailedDependency, _defaultMsg, details);
+        }
     }
 
 
