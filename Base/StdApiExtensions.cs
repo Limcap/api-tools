@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
@@ -101,7 +101,8 @@ namespace StandardApiTools {
         public static Exception AddJsonBody(this HttpWebRequest req, object data) {
             try {
                 using (var sw = new StreamWriter(req.GetRequestStream())) {
-                    string json = JsonConvert.SerializeObject(data);
+                    var opt = new JsonSerializerOptions { IgnoreNullValues = false, PropertyNameCaseInsensitive = true };
+                    string json = JsonSerializer.Serialize(data);
                     sw.Write(json);
                 }
                 return null;
@@ -220,6 +221,38 @@ namespace StandardApiTools {
         public static void Set<K, V>(this Dictionary<K, V> dict, K key, V value) {
             if (dict.ContainsKey(key)) dict[key] = value;
             else dict.Add(key, value);
+        }
+
+
+
+
+        /// <summary>
+        /// Tenta desserializar uma string para um objeto anonimo.
+        /// Se não conseguir, retorna a própria string.
+        /// </summary>
+        public static object DeserializeOr(this string str) {
+            try {
+                return JsonSerializer.Deserialize<object>(str);
+            }
+            catch {
+                return null;
+            }
+        }
+
+
+
+
+        /// <summary>
+        /// Tenta desserializar uma string para um objeto anonimo.
+        /// Se não conseguir, retorna o valor informado, que pode ser null.
+        /// </summary>
+        public static object DeserializeOr(this string str, object orValue) {
+            try {
+                return JsonSerializer.Deserialize<object>(str);
+            }
+            catch {
+                return orValue;
+            }
         }
     }
 }
