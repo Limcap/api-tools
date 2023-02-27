@@ -21,14 +21,20 @@ namespace StandardApiTools {
         public static void HandleExceptions(ActionExecutedContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
                 context.Exception = context.Exception.Deaggregate();
-                context.Result = StdApiErrorResult.CreateFrom(context.Exception);
+                //context.Result = StdApiErrorResult.CreateFrom(context.Exception);
+                context.Result = context.Exception is IProduceStdApiResult pr
+                ? pr.ToResult()
+                : new StdApiException(context.Exception, "Ocorreu um erro não identificado durante o processamento.").ToResult();
                 context.ExceptionHandled = true;
             }
         }
         public static void HandleExceptions(ExceptionContext context) {
             if (context.Exception != null && !context.ExceptionHandled) {
                 context.Exception = context.Exception.Deaggregate();
-                context.Result = StdApiErrorResult.CreateFrom(context.Exception);
+                //context.Result = StdApiErrorResult.CreateFrom(context.Exception);
+                context.Result = context.Exception is IProduceStdApiResult pr
+                ? pr.ToResult()
+                : new StdApiException(context.Exception, "Ocorreu um erro não identificado durante o processamento.").ToResult();
                 context.ExceptionHandled = true;
             }
         }
