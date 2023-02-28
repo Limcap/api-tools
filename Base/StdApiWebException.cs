@@ -14,8 +14,6 @@ namespace StandardApiTools {
         public StdApiWebException(StdApiResponse response)
         : base(response.Exception) {
             Response = response;
-            //content = response.ContentAsString;
-            //statusCode = (int) HttpStatusCode.FailedDependency;
             this.AddMessage(_defaultMsg);
         }
 
@@ -26,14 +24,34 @@ namespace StandardApiTools {
 
 
 
-        public bool UseResponseStatusCode { get; set; } = false;
-        public override int StatusCode {
-            get => UseResponseStatusCode ? Response.StatusCode : (int)HttpStatusCode.FailedDependency;
+
+        public override int StatusCode
+        => statusCode > 0 ? statusCode : isUnwrapped ? Response.StatusCode : (int)HttpStatusCode.FailedDependency;
+
+
+
+
+
+        public StdApiWebException SetStatus(HttpStatusCode status) {
+            statusCode = (int)status;
+            return this;
         }
-        public override object Details {
-            get => details != null ? details : CompileContent();
-            set => details = value;
+
+
+
+
+        public override object Details
+        => details != null ? details : CompileDetails();
+
+
+
+
+
+        public StdApiWebException SetDetails(object details) {
+            this.details = details;
+            return this;
         }
+
 
 
 
@@ -97,8 +115,9 @@ namespace StandardApiTools {
         #endregion
         // Relativo a conversão para resultado
 
-        private object CompileContent() {
-            return new StdApiWebExceptionDetails {
+        private object CompileDetails() {
+            if(isUnwrapped) return DetailsDeserializer(Response.ContentAsString);
+            else return new StdApiWebExceptionDetails {
                 Status = Response.HttpStatus != null
                     ? (int)Response.HttpStatus
                     : (int)Response.CommStatus,
@@ -106,7 +125,7 @@ namespace StandardApiTools {
                 //    ? Response.HttpStatus.ToString()
                 //    : Response.CommStatus.ToString(),
                 Message = Response.CommMessage,
-                Details = ContentDeserializer(Response.ContentAsString),
+                Details = DetailsDeserializer(Response.ContentAsString),
                 Uri = Response.RequestUri
             };
         }
@@ -114,26 +133,51 @@ namespace StandardApiTools {
 
 
 
-        private Func<string, object> ContentDeserializer = s => JsonSerializer.Serialize(s);
-        public StdApiException SetContentType<T>(JsonSerializerOptions opt = null) {
-            var s = Response?.ContentAsString;
-            ContentDeserializer = s => {
+        private Func<string, object> DetailsDeserializer = s => s.TryDeserialize(out var r) ? r : null;
+
+
+
+
+        public StdApiWebException SetDetailsType<T>(JsonSerializerOptions opt = null) {
+            var s = Response?.ContentAsString.TrimToNull();
+            var infoTitle = "Erro de desserialização";
+            var infoText = "O conteúdo está apresentado no formato string, pois não foi possível desserializá-lo.";
+            DetailsDeserializer = s => {
+                opt ??= StdApiExtensions.DefaultJsonSerializerOptions;
+                if (s == null || s[0] != '{' && s[0] != '[') return s;
                 try {
-                    s = s.TrimToNull();
-                    if (s == null || s[0] != '{' && s[0] != '[') return s;
-                    return JsonSerializer.Deserialize<T>(s, opt);
+                    var result = JsonSerializer.Deserialize<T>(s, opt);
+                    Info.Del(infoTitle);
+                    return result;
                 }
                 catch (Exception e) {
-                    Info.Add(
-                        "Erro de desserialização",
-                        "O conteúdo está apresentado no formato cru, pois não foi possível " +
-                        "desserializá-lo. " + Environment.NewLine + e.Message
-                    );
+                    Info.Set(infoTitle, infoText + Environment.NewLine + e.Message);
                     return s;
                 }
             };
             return this;
         }
+
+
+
+
+        private bool isUnwrapped;
+
+
+
+
+        public StdApiWebException UnwrapStatus(int status) {
+            if (Response.StatusCode != status) return null;
+            isUnwrapped = true;
+            this.SetMessage(Response.CommMessage);
+            return this;
+        }
+        public StdApiWebException UnwrapStatus() {
+            isUnwrapped = true;
+            this.SetMessage(Response.CommMessage);
+            return this;
+        }
+
 
 
 
