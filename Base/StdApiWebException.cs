@@ -138,7 +138,7 @@ namespace StandardApiTools {
 
 
 
-        public StdApiWebException SetDetailsType<T>(JsonSerializerOptions opt = null) {
+        public StdApiWebException SetResponseContentType<T>(JsonSerializerOptions opt = null) {
             var s = Response?.ContentAsString.TrimToNull();
             var infoTitle = "Erro de desserialização";
             var infoText = "O conteúdo está apresentado no formato string, pois não foi possível desserializá-lo.";
