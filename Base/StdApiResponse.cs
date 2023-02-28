@@ -154,7 +154,7 @@ namespace StandardApiTools {
 
         public StdApiException TryDeserializeContent<T>(out T result, JsonSerializerOptions options = null) {
             try {
-                options ??= StdApiExtensions.DefaultJsonSerializerOptions;
+                options ??= StdApiUtil.DefaultJsonSerializerOptions;
                 result = JsonSerializer.Deserialize<T>(ContentAsString, options);
                 return null;
             }

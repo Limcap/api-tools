@@ -143,7 +143,7 @@ namespace StandardApiTools {
             var infoTitle = "Erro de desserialização";
             var infoText = "O conteúdo está apresentado no formato string, pois não foi possível desserializá-lo.";
             DetailsDeserializer = s => {
-                opt ??= StdApiExtensions.DefaultJsonSerializerOptions;
+                opt ??= StdApiUtil.DefaultJsonSerializerOptions;
                 if (s == null || s[0] != '{' && s[0] != '[') return s;
                 try {
                     var result = JsonSerializer.Deserialize<T>(s, opt);
