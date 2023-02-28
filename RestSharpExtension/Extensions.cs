@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StandardApiTools.RestSharp {
@@ -29,6 +30,7 @@ namespace StandardApiTools.RestSharp {
                 CommStatusCode = resp.ResponseStatus.ToCommStatus(),
                 CommMessage = resp.ErrorMessage,
                 CharacterSet = null,
+                ContentBytes = resp.RawBytes,
                 ContentAsString = resp.Content,
                 ContentEncoding = resp.ContentEncoding,
                 ContentType = resp.ContentType,
