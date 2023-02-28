@@ -88,6 +88,15 @@ namespace StandardApiTools {
 
 
 
+        public bool Del(string key) {
+            if (!dict.ContainsKey(key)) return false;
+            dict.Remove(key);
+            return true;
+        }
+
+
+
+
         public string ToJson() {
             var opt = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNameCaseInsensitive = true };
             var serialized = JsonSerializer.Serialize(dict, opt);
