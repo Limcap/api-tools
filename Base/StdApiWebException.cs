@@ -32,7 +32,7 @@ namespace StandardApiTools {
 
 
 
-        public StdApiWebException SetStatus(HttpStatusCode status) {
+        public new StdApiWebException SetStatus(HttpStatusCode status) {
             statusCode = (int)status;
             return this;
         }
@@ -47,7 +47,7 @@ namespace StandardApiTools {
 
 
 
-        public StdApiWebException SetDetails(object details) {
+        public new StdApiWebException SetDetails(object details) {
             this.details = details;
             return this;
         }
