@@ -55,62 +55,6 @@ namespace StandardApiTools {
 
 
 
-
-        //migrado para extensao
-        //public StdApiWebException SetMessage(string message) {
-        //    MessageParts.Clear();
-        //    MessageParts.Add(message.TrimToNull());
-        //    return this;
-        //}
-
-
-
-
-        //migrado para extensao
-        //public new StdApiWebException AddMessage(string message) {
-        //    MessageParts.Add(message.TrimToNull());
-        //    return this;
-        //}
-
-
-
-
-        //migrado para extensao
-        //public StdApiWebException SetContent(object content) {
-        //    this.content = content;
-        //    return this;
-        //}
-
-
-
-        //migrado para extensao
-        //public StdApiWebException DesserializeContent<T>(JsonSerializerOptions opt = null) {
-        //    if(content is string str){
-        //        try {
-        //            content = JsonSerializer.Deserialize<T>(str, opt);
-        //        }
-        //        catch (Exception e) {
-        //            Info.Add(
-        //                "Erro de desserialização",
-        //                "O conteúdo está apresentado na forma inicial, pois não foi possível desserializá-lo para o formato definido."
-        //            );
-        //            content = JsonSerializer.Deserialize<object>(str);
-        //        }
-        //    }
-        //    return this;
-        //}
-
-
-
-        //migrado para extensao
-        //public new StdApiWebException AddInfo(string key, object value) {
-        //    Info.Add(key, value);
-        //    return this;
-        //}
-
-
-
-
         #region ============================================================================
         #endregion
         // Relativo a conversão para resultado
@@ -121,9 +65,6 @@ namespace StandardApiTools {
                 Status = Response.HttpStatus != null
                     ? (int)Response.HttpStatus
                     : (int)Response.CommStatus,
-                //StatusDescription = Response.HttpStatus != null
-                //    ? Response.HttpStatus.ToString()
-                //    : Response.CommStatus.ToString(),
                 Message = Response.CommMessage,
                 Details = DetailsDeserializer(Response.ContentAsString),
                 Uri = Response.RequestUri
@@ -237,7 +178,7 @@ namespace StandardApiTools {
 
         #region ============================================================================
         #endregion
-        // Static
+        // Static e Constants
 
         /// <summary>
         /// Wrapper para o contrutor privado com os mesmos parâmetros, para validar a construção,
@@ -253,10 +194,6 @@ namespace StandardApiTools {
 
 
 
-
-        #region ============================================================================
-        #endregion
-        // Contantes
 
         private const string _defaultMsg = "A chamada para um serviço externo falhou.";
 
@@ -278,7 +215,6 @@ namespace StandardApiTools {
     public class StdApiWebExceptionDetails: StdApiWebExceptionDetails<object> { }
     public class StdApiWebExceptionDetails<T> {
         public int Status { get; set; }
-        //public string StatusDescription { get => Status.ToString(); }
         public string Message { get; set; }
         public T Details { get; set; }
         public Uri Uri { get; set; }

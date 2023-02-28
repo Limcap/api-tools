@@ -7,22 +7,6 @@ using System.Threading.Tasks;
 namespace StandardApiTools {
     public partial class StdApiErrorResult: StdApiResult {
 
-        // Essa lógica de criar um ErrorResult de uma exceção não capturada,
-        // deve ficar no ActionFilter
-        //public static StdApiErrorResult CreateFrom(Exception ex) {
-        //    if (ex is IProduceStdApiErrorResult aex) {
-        //        return aex.ToResult();
-        //    }
-        //    return new StdApiErrorResult(
-        //        500,
-        //        "Ocorreu um erro não identificado durante o processamento.",
-        //        new { Message = ex.Message, Content = ex.ToString() }
-        //    );
-        //}
-
-
-
-
         public StdApiErrorResult(int status, string message, object details = null, object info = null, bool? suppressNullValues = null) {
             StatusCode = status;
             Message = message;

@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Net;
-using System.Text.Json;
-
-namespace StandardApiTools {
+﻿namespace StandardApiTools {
     public static class StdApiExceptionExtensions {
 
         public static E SetMessage<E>(this E ex, string message) where E : StdApiExceptionBase {

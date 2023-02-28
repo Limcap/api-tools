@@ -8,7 +8,6 @@ namespace StandardApiTools {
     public partial class StdApiResponse {
         public struct Blueprint {
             public Exception Exception;
-            //public object CommStatusSource;
             public CommunicationStatus CommStatusCode;
             public string CommMessage;
             public HttpStatusCode? HttpStatusCode;

@@ -41,8 +41,6 @@ namespace StandardApiTools {
         public HttpStatusCode? HttpStatus { get; }
         public int StatusCode => HttpStatus.HasValue ? (int)HttpStatus : (int)CommStatus;
         public bool IsSuccess => HttpStatus.HasValue && ((int)HttpStatus) < 300;
-        //public string ContentAsString { get; }
-        //public byte[] ContentAsBytes { get => ContentAsString == null ? null : Encoding.UTF8.GetBytes(ContentAsString); }
         public byte[] ContentAsBytes { get; }
         public string ContentAsString { get => ContentAsBytes.ToEncodedString(ContentEncoding); }
         public string ContentEncoding { get; }
@@ -150,8 +148,6 @@ namespace StandardApiTools {
 
 
 
-
-
         public StdApiException TryDeserializeContent<T>(out T result, JsonSerializerOptions options = null) {
             try {
                 options ??= StdApiUtil.DefaultJsonSerializerOptions;
@@ -168,33 +164,10 @@ namespace StandardApiTools {
 
 
 
-
-
         public T DeserializeContent<T>(out StdApiException exception, JsonSerializerOptions options = null) {
             exception = TryDeserializeContent<T>(out var result, options);
             return result;
-            //exception = null;
-            //try {
-            //    options ??= StdApiExtensions.DefaultJsonSerializerOptions;
-            //    var res = JsonSerializer.Deserialize<T>(ContentAsString, options);
-            //    return res;
-            //}
-            //catch (Exception ex) {
-            //    var msg = "Não foi possível desserializar o conteúdo";
-            //    exception = new StdApiException(HttpStatusCode.Conflict, msg, ex.Message);
-            //    return default;
-            //}
         }
-        //public DesserializationResult<T> DeserializeContent<T>(JsonSerializerOptions options = null) {
-        //    try {
-        //        options ??= new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-        //        var res = JsonSerializer.Deserialize<T>(ContentAsString, options);
-        //        return new DesserializationResult<T>(res);
-        //    }
-        //    catch (Exception ex) {
-        //        return new DesserializationResult<T>(ex);
-        //    }
-        //}
 
 
 

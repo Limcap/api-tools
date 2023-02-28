@@ -20,16 +20,10 @@ namespace StandardApiTools {
 
 
 
-        public virtual int StatusCode { get => statusCode; } //set => statusCode = value;
+        public virtual int StatusCode { get => statusCode; }
         public override string Message { get => string.Join(Environment.NewLine, MessageParts); }
-        public virtual object Details { get => details; } //set => details = value;
-        public virtual object Info { get => info; } // set => info = value;
-
-
-
-
-        //migrado para extensao
-        //public virtual void AddMessage(string value) => MessageParts.Add(value.Trim());
+        public virtual object Details { get => details; }
+        public virtual object Info { get => info; }
 
 
 
