@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 
 namespace StandardApiTools {
 
@@ -11,7 +12,14 @@ namespace StandardApiTools {
             public CommunicationStatus CommStatusCode;
             public string CommMessage;
             public HttpStatusCode? HttpStatusCode;
-            public string ContentAsString;
+            public byte[] ContentBytes;
+            public string ContentAsString {
+                get => ContentBytes.ToEncodedString(Encoding.GetEncoding(ContentEncoding));
+                set {
+                    ContentBytes = Encoding.UTF8.GetBytes(value);
+                    ContentEncoding = Encoding.UTF8.EncodingName;
+                }
+            }
             public string ContentEncoding;
             public Uri RequestUri;
             public long ContentLength;
@@ -23,6 +31,7 @@ namespace StandardApiTools {
             public DateTime? LastModified;
             public string Method;
             public string Server;
+
         }
     }
 }

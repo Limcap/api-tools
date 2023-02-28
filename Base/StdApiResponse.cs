@@ -1,19 +1,13 @@
-﻿using Microsoft.AspNetCore.JsonPatch.Helpers;
-using Microsoft.VisualBasic;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static StandardApiTools.StdApiResponse;
-using static StandardApiTools.StdApiWebException.SpecialCase;
 
 namespace StandardApiTools {
 
-    public partial class StdApiResponse : IProduceStdApiErrorResult {
+    public partial class StdApiResponse: IProduceStdApiErrorResult {
 
         public static async Task<StdApiResponse> FromAsync(HttpWebRequest req) {
             try {
@@ -45,10 +39,12 @@ namespace StandardApiTools {
         public string CommMessage { get; }
         public CommunicationStatus CommStatus { get; }
         public HttpStatusCode? HttpStatus { get; }
-        public int StatusCode => HttpStatus.HasValue ? (int)HttpStatus : (int)CommStatus; 
+        public int StatusCode => HttpStatus.HasValue ? (int)HttpStatus : (int)CommStatus;
         public bool IsSuccess => HttpStatus.HasValue && ((int)HttpStatus) < 300;
-        public string ContentAsString { get; }
-        public byte[] ContentAsBytes { get => ContentAsString == null ? null : Encoding.UTF8.GetBytes(ContentAsString); }
+        //public string ContentAsString { get; }
+        //public byte[] ContentAsBytes { get => ContentAsString == null ? null : Encoding.UTF8.GetBytes(ContentAsString); }
+        public byte[] ContentAsBytes { get; }
+        public string ContentAsString { get => ContentAsBytes.ToEncodedString(ContentEncoding); }
         public string ContentEncoding { get; }
         public Uri RequestUri { get; }
         public long ContentLength { get; }
@@ -65,13 +61,13 @@ namespace StandardApiTools {
 
 
         public StdApiResponse(HttpWebRequest req, HttpWebResponse resp)
-        :this(req, resp, CommunicationStatus.Success, "Communication successfully completed" ){}
+        : this(req, resp, CommunicationStatus.Success, "Communication successfully completed") { }
 
 
 
 
         private StdApiResponse(HttpWebRequest req, WebException ex)
-        :this(req, ex.Response, ex.Status.ToCommStatus(), ex.Message) {
+        : this(req, ex.Response, ex.Status.ToCommStatus(), ex.Message) {
             Exception = ex;
         }
 
@@ -88,7 +84,7 @@ namespace StandardApiTools {
             if (resp is null) return;
             ContentLength = resp.ContentLength;
             ContentType = resp.ContentType;
-            Headers = resp.Headers.AllKeys.ToDictionary(k => resp.Headers[k]);
+            Headers = resp.Headers.AllKeys.ToDictionary(k => k, k => resp.Headers[k]);
             IsFromCache = resp.IsFromCache;
             var hr = resp as HttpWebResponse;
             HttpStatus = TryOrNull(() => hr.StatusCode);
@@ -98,7 +94,9 @@ namespace StandardApiTools {
             Method = hr.Method;
             Server = hr.Server;
             ContentEncoding = hr.ContentEncoding;
-            ContentAsString = resp.GetContentAsString();
+            //ContentEncoding = hr.ContentEncoding != null ? Encoding.GetEncoding(hr.ContentEncoding) : null;
+            //ContentAsString = resp.GetContentAsString();
+            ContentAsBytes = resp.GetContentAsBytes();
             resp.Dispose();
         }
 
@@ -120,7 +118,7 @@ namespace StandardApiTools {
             Method = b.Method;
             Server = b.Server;
             ContentEncoding = b.ContentEncoding;
-            ContentAsString = b.ContentAsString;
+            ContentAsBytes = b.ContentBytes;
         }
 
 
@@ -133,22 +131,83 @@ namespace StandardApiTools {
 
 
 
-        public StdApiWebException ToException(string additionalMessage = null) {
-            return StdApiWebException.From(this).AddMessage(additionalMessage);
+        public StdApiWebException ToException(CommunicationStatus status) => ToException((int)status);
+        public StdApiWebException ToException(HttpStatusCode status) => ToException((int)status);
+        public StdApiWebException ToException(int status) {
+            if (status == (int)HttpStatus || status == (int)CommStatus)
+                return StdApiWebException.From(this);
+            else return null;
+        }
+        public StdApiWebException ToException(params int[] statuses) {
+            if (statuses.Contains((int)HttpStatus) || statuses.Contains((int)CommStatus))
+                return StdApiWebException.From(this);
+            else return null;
+        }
+        public StdApiWebException ToException() {
+            return StdApiWebException.From(this);
         }
 
 
 
 
-        public DesserializationResult<T> TryDeserialize<T>(JsonSerializerOptions options = null) {
+
+
+        public StdApiException TryDeserializeContent<T>(out T result, JsonSerializerOptions options = null) {
             try {
-                options ??= new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-                var res = JsonSerializer.Deserialize<T>(ContentAsString, options);
-                return new DesserializationResult<T>(res);
+                options ??= StdApiExtensions.DefaultJsonSerializerOptions;
+                result = JsonSerializer.Deserialize<T>(ContentAsString, options);
+                return null;
             }
             catch (Exception ex) {
-                return new DesserializationResult<T>(ex);
+                result = default;
+                var msg = "Não foi possível desserializar o conteúdo";
+                return new StdApiException(HttpStatusCode.Conflict, msg, ex.Message);
             }
+        }
+
+
+
+
+
+
+        public T DeserializeContent<T>(out StdApiException exception, JsonSerializerOptions options = null) {
+            exception = TryDeserializeContent<T>(out var result, options);
+            return result;
+            //exception = null;
+            //try {
+            //    options ??= StdApiExtensions.DefaultJsonSerializerOptions;
+            //    var res = JsonSerializer.Deserialize<T>(ContentAsString, options);
+            //    return res;
+            //}
+            //catch (Exception ex) {
+            //    var msg = "Não foi possível desserializar o conteúdo";
+            //    exception = new StdApiException(HttpStatusCode.Conflict, msg, ex.Message);
+            //    return default;
+            //}
+        }
+        //public DesserializationResult<T> DeserializeContent<T>(JsonSerializerOptions options = null) {
+        //    try {
+        //        options ??= new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        //        var res = JsonSerializer.Deserialize<T>(ContentAsString, options);
+        //        return new DesserializationResult<T>(res);
+        //    }
+        //    catch (Exception ex) {
+        //        return new DesserializationResult<T>(ex);
+        //    }
+        //}
+
+
+
+
+        public string GetHeaderValue(string key) {
+            if (Headers == null) return null;
+            foreach (var item in Headers) {
+                if (item.Key == key)
+                    return item.Value;
+                if (item.Value == key)
+                    return item.Key;
+            }
+            return null;
         }
 
 

@@ -38,6 +38,31 @@ namespace StandardApiTools {
 
 
 
+        public static string ToEncodedString(this byte[] bytes, string encoding = null) {
+            Encoding enc = null;
+            if(encoding != null) {
+                try {
+                    enc = int.TryParse(encoding, out var codepage)
+                    ? Encoding.GetEncoding(codepage)
+                    : Encoding.GetEncoding(encoding);
+                }
+                catch { }
+            }
+            return ToEncodedString(bytes, enc);
+        }
+
+
+
+
+        public static string ToEncodedString(this byte[] bytes, Encoding encoding = null) {
+            var rs = new MemoryStream(bytes);
+            StreamReader sr = encoding != null ? new StreamReader(rs, encoding) : new StreamReader(rs, true);
+            return sr.ReadToEnd();
+        }
+
+
+
+
         /// <summary>
         /// Retorna o conteúdo de uma WebResponse no formato string.
         /// </summary>
@@ -230,13 +255,8 @@ namespace StandardApiTools {
         /// Tenta desserializar uma string para um objeto anonimo.
         /// Se não conseguir, retorna a própria string.
         /// </summary>
-        public static object DeserializeOr(this string str) {
-            try {
-                return JsonSerializer.Deserialize<object>(str);
-            }
-            catch {
-                return null;
-            }
+        public static object DeserializeOr(this string str, JsonSerializerOptions opt = null) {
+            return DeserializeOr<object>(str, str, opt);
         }
 
 
@@ -246,13 +266,52 @@ namespace StandardApiTools {
         /// Tenta desserializar uma string para um objeto anonimo.
         /// Se não conseguir, retorna o valor informado, que pode ser null.
         /// </summary>
-        public static object DeserializeOr(this string str, object orValue) {
-            try {
-                return JsonSerializer.Deserialize<object>(str);
-            }
-            catch {
-                return orValue;
-            }
+        public static object DeserializeOr(this string str, object orValue, JsonSerializerOptions opt = null) {
+            return DeserializeOr<object>(str, orValue, opt);
+        }
+
+
+
+
+        /// <summary>
+        /// Tenta desserializar uma string para um objeto anonimo.
+        /// Se não conseguir, retorna o valor informado.
+        /// </summary>
+        public static T DeserializeOr<T>(this string str, T orValue, JsonSerializerOptions opt = null) where T : class {
+            opt ??= DefaultJsonSerializerOptions;
+            try { return JsonSerializer.Deserialize<T>(str, opt); }
+            catch { return orValue; }
+        }
+
+
+
+
+        public static S? DeserializeOr<S>(this string str, S? orValue = null, JsonSerializerOptions opt = null) where S : struct {
+            opt ??= DefaultJsonSerializerOptions;
+            try { return JsonSerializer.Deserialize<S>(str, opt); }
+            catch { return orValue; }
+        }
+
+
+
+        public static bool TryDeserialize(this string str, out object result, JsonSerializerOptions opt = null) {
+            return TryDeserialize<object>(str, out result, opt);
+        }
+
+
+
+
+        public static bool TryDeserialize<T>(this string str, out T result, JsonSerializerOptions opt = null) {
+            opt ??= DefaultJsonSerializerOptions;
+            try { result = JsonSerializer.Deserialize<T>(str, opt); return true; }
+            catch { result = default; return false; }
+        }
+
+
+
+
+        public static JsonSerializerOptions DefaultJsonSerializerOptions {
+            get => new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
     }
 }
