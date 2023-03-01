@@ -42,7 +42,7 @@ namespace StandardApiTools {
         public int StatusCode => HttpStatus.HasValue ? (int)HttpStatus : (int)CommStatus;
         public bool IsSuccess => HttpStatus.HasValue && ((int)HttpStatus) < 300;
         public byte[] ContentAsBytes { get; }
-        public string ContentAsString { get => ContentAsBytes.ToEncodedString(ContentEncoding); }
+        public string ContentAsString { get => ContentAsBytes?.ToEncodedString(ContentEncoding); }
         public string ContentEncoding { get; }
         public Uri RequestUri { get; }
         public long ContentLength { get; }

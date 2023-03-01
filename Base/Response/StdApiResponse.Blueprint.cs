@@ -30,7 +30,6 @@ namespace StandardApiTools {
             public DateTime? LastModified;
             public string Method;
             public string Server;
-
         }
     }
 }
