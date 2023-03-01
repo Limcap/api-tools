@@ -175,8 +175,14 @@ namespace StandardApiTools {
 
 
         public static bool TryDeserialize<T>(this string str, out T result, JsonSerializerOptions opt = null) {
-            try { result = JsonSerializer.Deserialize<T>(str, opt ?? JsonUtil.DefaultOptions); return true; }
-            catch (Exception ex) { result = default; return false; }
+            // A idéia era usar o System.Text.Json, para não ter que usar o Newtonsoft.Json, porém
+            // por enquanto terá que ser o Newtonsoft pq os objetos desserializados com o System.Text.Json
+            // não são exibidos corretamente em algumas implementações do Swagger. Por exemplo, fica:
+            // { "ValueKind" : 1 } ao invés de { "chave" : valor }.
+            try { result = Newtonsoft.Json.JsonConvert.DeserializeObject<T>(str); return true; }
+            catch { result = default; return false; }
+            //try { result = JsonSerializer.Deserialize<T>(str, opt ?? JsonUtil.DefaultOptions); return true; }
+            //catch (Exception ex) { result = default; return false; }
         }
     }
 }
