@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 
-namespace StandardApiTools {
+namespace StandardApiTools
+{
 
     /// <summary>
     /// Filtro de execução de contexto que converte criar um <see cref="StdApiErrorResult"/>
@@ -13,14 +14,17 @@ namespace StandardApiTools {
     /// <br/>2. Chamando o método estático <see cref="HandleExceptions"/> em um filtro já configurado.
     /// </remarks>
     /// indicadas por <see cref="ActionExecutedContext.Exception"/> e <see cref="ActionExecutedContext.ExceptionHandled"/>
-    public class StdApiActionFilter: ActionFilterAttribute {
+    public class StdApiActionFilter : ActionFilterAttribute
+    {
 
         /// <summary>
         /// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="EasyResponseResult(Exception)"/> caso
         /// exista uma exceção não tratada no contexto.
         /// </summary>
-        public static void HandleException(ActionExecutedContext context) {
-            if (context.Exception != null && !context.ExceptionHandled) {
+        public static void HandleException(ActionExecutedContext context)
+        {
+            if (context.Exception != null && !context.ExceptionHandled)
+            {
                 var result = GetResultFromException(context.Exception);
                 if (result == null) return;
                 context.Result = result;
@@ -31,8 +35,10 @@ namespace StandardApiTools {
 
 
 
-        public static void HandleExceptions(ExceptionContext context) {
-            if (context.Exception != null && !context.ExceptionHandled) {
+        public static void HandleExceptions(ExceptionContext context)
+        {
+            if (context.Exception != null && !context.ExceptionHandled)
+            {
                 var result = GetResultFromException(context.Exception);
                 if (result == null) return;
                 context.Result = result;
@@ -43,7 +49,8 @@ namespace StandardApiTools {
 
 
 
-        public static StdApiErrorResult GetResultFromException(Exception ex) {
+        public static StdApiErrorResult GetResultFromException(Exception ex)
+        {
             if (ex == null) return null;
             ex = ex.Deaggregate();
             var result = ex is IProduceStdApiErrorResult pr
@@ -55,7 +62,8 @@ namespace StandardApiTools {
 
 
 
-        public override void OnActionExecuted(ActionExecutedContext context) {
+        public override void OnActionExecuted(ActionExecutedContext context)
+        {
             HandleException(context);
             base.OnActionExecuted(context);
         }
