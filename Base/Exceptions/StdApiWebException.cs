@@ -76,19 +76,22 @@ namespace StandardApiTools {
 
 
         private Func<string, object> DetailsDeserializer;
-        private Func<string, object> DefaultDetailsDeserializer => s => s.TryDeserialize(out var r) ? r : null;
+        private Func<string, object> DefaultDetailsDeserializer
+            => s => s.TryDeserialize(out var r) == null ? r : null;
 
 
 
 
-        public StdApiWebException SetResponseContentType<T>(JsonSerializerOptions opt = null) {
+        //public StdApiWebException SetResponseContentType<T>(JsonSerializerOptions opt = null) {
+        public StdApiWebException SetResponseContentType<T>() {
             var s = Response?.ContentAsString.TrimToNull();
             var infoTitle = "Erro de desserialização";
             var infoText = "O conteúdo está apresentado no formato string, pois não foi possível desserializá-lo.";
             DetailsDeserializer = s => {
                 if (s == null || s[0] != '{' && s[0] != '[') return s;
                 try {
-                    var result = JsonUtil.Deserialize<T>(s, opt);
+                    //var result = JsonUtil.Deserialize<T>(s, opt);
+                    var result = JsonUtil.Deserialize<T>(s);
                     Info.Del(infoTitle);
                     return result;
                 }

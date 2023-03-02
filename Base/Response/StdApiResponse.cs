@@ -148,9 +148,11 @@ namespace StandardApiTools {
 
 
 
-        public StdApiException TryDeserializeContent<T>(out T result, JsonSerializerOptions opt = null) {
+        //public StdApiException TryDeserializeContent<T>(out T result, JsonSerializerOptions opt = null)
+        public StdApiException TryDeserializeContent<T>(out T result) {
             try {
-                result = JsonUtil.Deserialize<T>(ContentAsString, opt);
+                //result = JsonUtil.Deserialize<T>(ContentAsString, opt);
+                result = JsonUtil.Deserialize<T>(ContentAsString);
                 return null;
             }
             catch (Exception ex) {
@@ -163,8 +165,10 @@ namespace StandardApiTools {
 
 
 
-        public T DeserializeContent<T>(out StdApiException exception, JsonSerializerOptions options = null) {
-            exception = TryDeserializeContent<T>(out var result, options);
+        //public T DeserializeContent<T>(out StdApiException exception, JsonSerializerOptions options = null) {
+        //    exception = TryDeserializeContent<T>(out var result, options);
+        public T DeserializeContent<T>(out StdApiException exception) {
+            exception = TryDeserializeContent<T>(out var result);
             return result;
         }
 
