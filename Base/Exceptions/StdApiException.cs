@@ -14,10 +14,10 @@ namespace StandardApiTools {
 
 
 
-        public StdApiException(Exception innerException, string message = null)
-        : base(message ?? innerException.Message, innerException) {
+        protected StdApiException(Exception sourceException, string message = null)
+        : base(message ?? Status500DefaultMessage, sourceException) {
             this.statusCode = 500;
-            this.details = innerException.ToString();
+            this.details = sourceException.ToString();
             this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
 
@@ -66,5 +66,22 @@ namespace StandardApiTools {
             this.details = details;
             return this;
         }
+
+
+
+
+        public static StdApiException CreateFrom(Exception ex, string message = null) {
+            ex = ex.Deaggregate();
+            if (ex is StdApiException ex2) {
+                if(message != null && !ex2.MessageParts.Contains(message)) ex2.InsertMessage(message);
+                return ex2;
+            }
+            else return new StdApiException(ex, message); 
+        }
+
+
+
+
+        private static string Status500DefaultMessage = "Ocorreu um erro não identificado durante o processamento.";
     }
 }

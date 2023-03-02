@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace StandardApiTools {
@@ -79,5 +80,18 @@ namespace StandardApiTools {
         public static string MessageKeyName = "message";
         public static string DetailsKeyName = "details";
         public static string InfoKeyName = "info";
+
+
+
+
+        public static StdApiErrorResult CreateFrom(Exception ex, string message = null) {
+            return StdApiException.CreateFrom(ex, message).ToResult();
+            //if (ex == null) return null;
+            //ex = ex.Deaggregate();
+            //var result = ex is IProduceStdApiErrorResult pr
+            //? pr.ToResult()
+            //: StdApiException.CreateFrom(ex, "Ocorreu um erro não identificado durante o processamento.").ToResult();
+            //return result;
+        }
     }
 }

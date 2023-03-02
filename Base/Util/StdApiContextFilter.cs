@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System;
+using System.Net;
 
 namespace StandardApiTools
 {
@@ -11,21 +12,21 @@ namespace StandardApiTools
     /// <remarks>
     /// Pode-se usar esta classe de 2 formas:
     /// <br/>1. Configurando-a como um filtro na estrutura do MVC;
-    /// <br/>2. Chamando o método estático <see cref="HandleExceptions"/> em um filtro já configurado.
+    /// <br/>2. Chamando o método estático <see cref="Handle"/> em um filtro já configurado.
     /// </remarks>
     /// indicadas por <see cref="ActionExecutedContext.Exception"/> e <see cref="ActionExecutedContext.ExceptionHandled"/>
-    public class StdApiActionFilter : ActionFilterAttribute
+    public class StdApiContextFilter : ActionFilterAttribute
     {
 
         /// <summary>
         /// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="EasyResponseResult(Exception)"/> caso
         /// exista uma exceção não tratada no contexto.
         /// </summary>
-        public static void HandleException(ActionExecutedContext context)
+        public static void Handle(ActionExecutedContext context)
         {
             if (context.Exception != null && !context.ExceptionHandled)
             {
-                var result = GetResultFromException(context.Exception);
+                var result = GetResult(context.Exception);
                 if (result == null) return;
                 context.Result = result;
                 context.ExceptionHandled = true;
@@ -35,11 +36,11 @@ namespace StandardApiTools
 
 
 
-        public static void HandleExceptions(ExceptionContext context)
+        public static void Handle(ExceptionContext context)
         {
             if (context.Exception != null && !context.ExceptionHandled)
             {
-                var result = GetResultFromException(context.Exception);
+                var result = GetResult(context.Exception);
                 if (result == null) return;
                 context.Result = result;
                 context.ExceptionHandled = true;
@@ -49,13 +50,11 @@ namespace StandardApiTools
 
 
 
-        public static StdApiErrorResult GetResultFromException(Exception ex)
-        {
-            if (ex == null) return null;
+        public static StdApiResult GetResult(Exception ex) {
             ex = ex.Deaggregate();
             var result = ex is IProduceStdApiErrorResult pr
             ? pr.ToResult()
-            : new StdApiException(ex, "Ocorreu um erro não identificado durante o processamento.").ToResult();
+            : new StdApiResult(HttpStatusCode.InternalServerError, ex.ToString());
             return result;
         }
 
@@ -64,7 +63,7 @@ namespace StandardApiTools
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {
-            HandleException(context);
+            Handle(context);
             base.OnActionExecuted(context);
         }
     }
