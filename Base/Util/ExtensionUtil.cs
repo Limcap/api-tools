@@ -31,8 +31,11 @@ namespace StandardApiTools
 
         public static string ToEncodedString(this byte[] bytes, Encoding encoding = null)
         {
+            encoding ??= Encoding.Default;
             var rs = new MemoryStream(bytes);
-            StreamReader sr = encoding != null ? new StreamReader(rs, encoding) : new StreamReader(rs, true);
+            StreamReader sr = encoding != null
+                ? new StreamReader(rs, encoding)
+                : new StreamReader(rs, true);
             return sr.ReadToEnd();
         }
 

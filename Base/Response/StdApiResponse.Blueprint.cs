@@ -13,10 +13,10 @@ namespace StandardApiTools {
             public HttpStatusCode? HttpStatusCode;
             public byte[] ContentBytes;
             public string ContentAsString {
-                get => ContentBytes.ToEncodedString(Encoding.GetEncoding(ContentEncoding));
+                get => ContentBytes?.ToEncodedString(ContentEncoding);
                 set {
                     ContentBytes = Encoding.UTF8.GetBytes(value);
-                    ContentEncoding = Encoding.UTF8.EncodingName;
+                    ContentEncoding = Encoding.UTF8.WebName;
                 }
             }
             public string ContentEncoding;

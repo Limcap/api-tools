@@ -31,7 +31,7 @@ namespace StandardApiTools.RestSharp {
                 CommMessage = resp.ErrorMessage,
                 CharacterSet = null,
                 ContentBytes = resp.RawBytes,
-                ContentAsString = resp.Content,
+                //ContentAsString = resp.Content,
                 ContentEncoding = resp.ContentEncoding,
                 ContentType = resp.ContentType,
                 Headers = resp.Headers.ToDictionary(p => p.Name, p => p.Value.ToString()),
