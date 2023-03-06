@@ -202,10 +202,12 @@ namespace StandardApiTools {
         private string GetHeaderSubvalue(string header, string key = null) {
             var subitems = GetHeader(header)
             .Split(';')
-            .Select(x => x.ToLower().Trim());
-            if (key == null) subitems = subitems
-            .Where(b => b.StartsWith(key.ToLower()));
-            return subitems.FirstOrDefault();
+            .Select(a => a.ToLower().Trim());
+            subitems = subitems.Where(b => b.StartsWith(key.ToLower()));
+            var selected = subitems.FirstOrDefault();
+            if (key == null) return selected;
+            if (key.Length >= selected.Length) return null;
+            return subitems.FirstOrDefault()?.Substring(key.Length);
         }
         //public string GetFileNameFromContentDisposition(string cd) {
         //    var start = cd.IndexOf("filename=") + 9;
