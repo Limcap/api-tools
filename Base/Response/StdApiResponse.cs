@@ -175,15 +175,38 @@ namespace StandardApiTools {
 
 
 
-        public string GetHeaderValue(string key) {
+        public string GetHeader(string key) {
             if (Headers == null) return null;
             foreach (var item in Headers) {
-                if (item.Key == key)
+                if (item.Key.ToLower() == key.ToLower())
                     return item.Value;
-                if (item.Value == key)
-                    return item.Key;
+                //if (item.Value.ToLower() == key.ToLower())
+                //    return item.Key;
             }
             return null;
+        }
+        public string GetHeader_ContentDisposition() {
+            return GetHeaderSubvalue("Content-Disposition")?.Trim('"');
+        }
+        public string GetHeader_ContentDisposition_Filename() {
+            return GetHeaderSubvalue("Content-Disposition", "filename=")?.Trim('"');
+        }
+        public string GetHeader_ContentDisposition_Name() {
+            return GetHeaderSubvalue("Content-Disposition", "name=")?.Trim('"');
+        }
+        public string GetHeader_ContentType() {
+            return GetHeaderSubvalue("Content-Type");
+        }
+        public string GetHeader_ContentType_Charset() {
+            return GetHeaderSubvalue("Content-Type", "charset=");
+        }
+        private string GetHeaderSubvalue(string header, string key = null) {
+            var subitems = GetHeader(header)
+            .Split(';')
+            .Select(x => x.ToLower().Trim());
+            if (key == null) subitems = subitems
+            .Where(b => b.StartsWith(key.ToLower()));
+            return subitems.FirstOrDefault();
         }
 
 
