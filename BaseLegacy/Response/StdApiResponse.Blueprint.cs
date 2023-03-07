@@ -30,6 +30,38 @@ namespace StandardApiTools {
             public DateTime? LastModified;
             public string Method;
             public string Server;
+
+
+
+
+            public static Blueprint From(StdApiResponse resp) {
+                var blueprint = new Blueprint() {
+                    Exception = resp.Exception,
+                    CommStatusCode = resp.CommStatus,
+                    CommMessage = resp.CommMessage,
+                    HttpStatusCode = resp.HttpStatus,
+                    ContentBytes = resp.ContentAsBytes,
+                    ContentLength = resp.ContentLength,
+                    ContentType = resp.ContentType,
+                    ContentEncoding = resp.ContentEncoding,
+                    CharacterSet = resp.CharacterSet,
+                    Server = resp.Server,
+                    RequestUri = resp.RequestUri,
+                    Method = resp.Method,
+                    Headers = resp.Headers,
+                    ProtocolVersion = resp.ProtocolVersion,
+                    IsFromCache = resp.IsFromCache,
+                    LastModified = resp.LastModified,
+                };
+                return blueprint;
+            }
+        }
+
+
+
+
+        public static StdApiResponse Clone(StdApiResponse resp) {
+            return new StdApiResponse(Blueprint.From(resp));
         }
     }
 }
