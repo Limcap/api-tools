@@ -44,6 +44,7 @@ namespace StandardApiTools.RestSharp {
                 ContentLength = resp.ContentLength,
                 HttpStatusCode = resp.StatusCode
             };
+            if ((int)resp.StatusCode < 100) blueprint.HttpStatusCode = null;
             return new StdApiResponse(blueprint);
         }
 
