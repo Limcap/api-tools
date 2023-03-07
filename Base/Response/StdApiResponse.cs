@@ -132,12 +132,12 @@ namespace StandardApiTools {
         public StdApiWebException ToException(CommunicationStatus status) => ToException((int)status);
         public StdApiWebException ToException(HttpStatusCode status) => ToException((int)status);
         public StdApiWebException ToException(int status) {
-            if (status == (int)HttpStatus || status == (int)CommStatus)
+            if (status == (int)CommStatus || (HttpStatus.HasValue && status == (int)HttpStatus))
                 return StdApiWebException.From(this);
             else return null;
         }
         public StdApiWebException ToException(params int[] statuses) {
-            if (statuses.Contains((int)HttpStatus) || statuses.Contains((int)CommStatus))
+            if (statuses.Contains((int)CommStatus) || (HttpStatus.HasValue && statuses.Contains((int)HttpStatus)))
                 return StdApiWebException.From(this);
             else return null;
         }
