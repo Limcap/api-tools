@@ -41,8 +41,8 @@ namespace StandardApiTools {
         public HttpStatusCode? HttpStatus { get; }
         public int StatusCode => HttpStatus.HasValue ? (int)HttpStatus : (int)CommStatus;
         public bool IsSuccess => HttpStatus.HasValue && ((int)HttpStatus) < 300;
-        public byte[] ContentAsBytes { get; }
-        public string ContentAsString { get => ContentAsBytes?.ToEncodedString(ContentEncoding); }
+        public byte[] ContentBytes { get; }
+        public string ContentAsString { get => ContentBytes?.AsString(CharacterSet); }
         public string ContentEncoding { get; }
         public Uri RequestUri { get; }
         public long ContentLength { get; }
@@ -94,7 +94,7 @@ namespace StandardApiTools {
             ContentEncoding = hr.ContentEncoding;
             //ContentEncoding = hr.ContentEncoding != null ? Encoding.GetEncoding(hr.ContentEncoding) : null;
             //ContentAsString = resp.GetContentAsString();
-            ContentAsBytes = resp.GetContentAsBytes();
+            ContentBytes = resp.GetContentAsBytes();
             resp.Dispose();
         }
 
@@ -116,7 +116,7 @@ namespace StandardApiTools {
             Method = b.Method;
             Server = b.Server;
             ContentEncoding = b.ContentEncoding;
-            ContentAsBytes = b.ContentBytes;
+            ContentBytes = b.ContentBytes;
         }
 
 

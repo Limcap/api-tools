@@ -38,12 +38,12 @@ namespace StandardApiTools {
         /// Retorna o conteúdo de uma WebResponse no formato string.
         /// </summary>
         /// <param name="response">Objeto fonte</param>
-        /// <param name="foceEncoding">Força a conversão da stream de bytes para string usando este encoding</param>
-        public static string GetContentAsString(this WebResponse response, Encoding foceEncoding = null) {
+        /// <param name="charset">Força a conversão da stream de bytes para string usando este encoding</param>
+        public static string GetContentAsString(this WebResponse response, Encoding charset = null) {
             if (response == null) return null;
             var encodingStr = (response as HttpWebResponse)?.ContentEncoding;
             var encoding = encodingStr == null ? null : Encoding.GetEncoding(encodingStr);
-            encoding = foceEncoding ?? encoding;
+            encoding = charset ?? encoding;
             var rs = response?.GetResponseStream();
             StreamReader sr = encoding != null ? new StreamReader(rs, encoding) : new StreamReader(rs, true);
             var data = sr.ReadToEnd();
@@ -53,12 +53,12 @@ namespace StandardApiTools {
 
 
 
-        public static Exception AddJsonContent(this HttpWebRequest req, object data, Encoding encoding = null) {
-            if (data is string s) return AddStringContent(req, s, encoding);
+        public static StdApiException AddJsonContent(this HttpWebRequest req, object data, Encoding charset = null) {
+            if (data is string s) return AddStringContent(req, s, charset);
             try {
                 JsonSerializerSettings settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                 var str = JsonConvert.SerializeObject(data, settings);
-                return AddContent(req, "application/json", str, encoding);
+                return AddContent(req, "application/json", str, charset);
             }
             catch (Exception ex) {
                 //return ex;
@@ -69,23 +69,23 @@ namespace StandardApiTools {
 
 
 
-        public static Exception AddStringContent(this HttpWebRequest req, string str, Encoding encoding = null) {
-            return AddContent(req, "text/plain", str, encoding);
+        public static StdApiException AddStringContent(this HttpWebRequest req, string str, Encoding charset = null) {
+            return AddContent(req, "text/plain", str, charset);
         }
 
 
 
 
-        public static Exception AddContent(this HttpWebRequest req, string contentType, string str, Encoding encoding = null) {
+        public static StdApiException AddContent(this HttpWebRequest req, string contentType, string str, Encoding charset = null) {
             try {
-                encoding = encoding ?? Encoding.Default;
-                if (encoding == Encoding.Default) {
+                charset = charset ?? Encoding.Default;
+                if (charset == Encoding.Default) {
                     req.ContentType = contentType;
                     using (var sw = new StreamWriter(req.GetRequestStream())) sw.Write(str);
                 }
                 else {
-                    req.ContentType = $"{contentType}; charset=" + encoding.WebName;
-                    var bytes = encoding.GetBytes(str);
+                    req.ContentType = $"{contentType}; charset=" + charset.WebName;
+                    var bytes = charset.GetBytes(str);
                     req.ContentLength = bytes.Length;
                     using (var s = req.GetRequestStream()) s.Write(bytes, 0, bytes.Length);
                 }

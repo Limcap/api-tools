@@ -9,27 +9,27 @@ namespace StandardApiTools
 {
     public static class StdApiUtil
     {
-
-        public static string ToEncodedString(this byte[] bytes, string encoding = null)
-        {
+        public static string AsString(this byte[] bytes, string charset = null) {
             Encoding enc = null;
-            if (encoding != null)
-            {
-                try
-                {
-                    enc = int.TryParse(encoding, out var codepage)
-                    ? Encoding.GetEncoding(codepage)
-                    : Encoding.GetEncoding(encoding);
+            if (charset != null) {
+                try {
+                    enc = Encoding.GetEncoding(charset);
                 }
-                catch { }
+                catch {
+                    try {
+                        int.TryParse(charset, out var codepage);
+                        enc = Encoding.GetEncoding(codepage);
+                    }
+                    catch { }
+                }
             }
-            return bytes.ToEncodedString(enc);
+            return bytes.AsString(enc);
         }
 
 
 
 
-        public static string ToEncodedString(this byte[] bytes, Encoding encoding = null)
+        public static string AsString(this byte[] bytes, Encoding encoding = null)
         {
             encoding ??= Encoding.Default;
             var rs = new MemoryStream(bytes);

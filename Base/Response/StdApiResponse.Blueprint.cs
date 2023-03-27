@@ -13,7 +13,7 @@ namespace StandardApiTools {
             public HttpStatusCode? HttpStatusCode;
             public byte[] ContentBytes;
             public string ContentAsString {
-                get => ContentBytes?.ToEncodedString(ContentEncoding);
+                get => ContentBytes?.AsString(CharacterSet);
                 set {
                     ContentBytes = Encoding.UTF8.GetBytes(value);
                     ContentEncoding = Encoding.UTF8.WebName;
@@ -40,7 +40,7 @@ namespace StandardApiTools {
                     CommStatusCode = resp.CommStatus,
                     CommMessage = resp.CommMessage,
                     HttpStatusCode = resp.HttpStatus,
-                    ContentBytes = resp.ContentAsBytes,
+                    ContentBytes = resp.ContentBytes,
                     ContentLength = resp.ContentLength,
                     ContentType = resp.ContentType,
                     ContentEncoding = resp.ContentEncoding,
