@@ -56,7 +56,6 @@ namespace StandardApiTools {
         public static Exception AddJsonContent(this HttpWebRequest req, object data, Encoding encoding = null) {
             if (data is string s) return AddStringContent(req, s, encoding);
             try {
-                encoding = encoding ?? Encoding.Default;
                 JsonSerializerSettings settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                 var str = JsonConvert.SerializeObject(data, settings);
                 return AddContent(req, "application/json", str, encoding);
@@ -85,7 +84,7 @@ namespace StandardApiTools {
                     using (var sw = new StreamWriter(req.GetRequestStream())) sw.Write(str);
                 }
                 else {
-                    req.ContentType = "contentType;charset=" + encoding.WebName;
+                    req.ContentType = $"{contentType}; charset=" + encoding.WebName;
                     var bytes = encoding.GetBytes(str);
                     req.ContentLength = bytes.Length;
                     using (var s = req.GetRequestStream()) s.Write(bytes, 0, bytes.Length);
