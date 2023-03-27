@@ -53,19 +53,48 @@ namespace StandardApiTools {
 
 
 
-        public static Exception AddJsonBody(this HttpWebRequest req, object data) {
+        public static Exception AddJsonContent(this HttpWebRequest req, object data, Encoding encoding = null) {
+            if(data is string s) return AddStringContent(req, s, encoding);
             try {
-                using (var sw = new StreamWriter(req.GetRequestStream())) {
-                    var opt = new JsonSerializerSettings {
-                        NullValueHandling = NullValueHandling.Ignore,
-                    };
-                    string json = JsonConvert.SerializeObject(data,opt);
-                    sw.Write(json);
+                encoding = encoding ?? Encoding.Default;
+                JsonSerializerSettings settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+                var str = JsonConvert.SerializeObject(data, settings);
+                return AddContent(req, "application/json", str, encoding);
+            }
+            catch (Exception ex) {
+                //return ex;
+                return StdApiException.CreateFrom(ex, "Ocorreu um erro ao adicionar o conteúdo da requisição");
+            }
+        }
+
+
+
+
+        public static Exception AddStringContent(this HttpWebRequest req, string str, Encoding encoding = null) {
+            return AddContent(req, "text/plain", str, encoding);
+        }
+
+
+
+
+        public static Exception AddContent(this HttpWebRequest req, string contentType, string str, Encoding encoding = null) {
+            try {
+                encoding = encoding ?? Encoding.Default;
+                if (encoding == Encoding.Default) {
+                    req.ContentType = contentType;
+                    using (var sw = new StreamWriter(req.GetRequestStream())) sw.Write(str);
+                }
+                else {
+                    req.ContentType = "contentType;charset=" + encoding.WebName;
+                    var bytes = encoding.GetBytes(str);
+                    req.ContentLength = bytes.Length;
+                    using (var s = req.GetRequestStream()) s.Write(bytes, 0, bytes.Length);
                 }
                 return null;
             }
             catch (Exception ex) {
-                return ex;
+                //return ex;
+                return StdApiException.CreateFrom(ex, "Ocorreu um erro ao adicionar o conteúdo da requisição");
             }
         }
     }
