@@ -72,6 +72,14 @@ namespace StandardApiTools {
 
 
 
+        public StdApiErrorResult ToResult(bool includeStackTraceInfo) {
+            if (includeStackTraceInfo) Info.Add("StackTrace", StackTrace);
+            return base.ToResult();
+        }
+
+
+
+
         public static StdApiException CreateFrom(Exception ex, string message = null) {
             ex = ex.Deaggregate();
             if (ex is StdApiException ex2) {
