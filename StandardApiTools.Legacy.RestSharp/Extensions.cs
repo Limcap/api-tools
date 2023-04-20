@@ -25,7 +25,6 @@ namespace StandardApiTools.RestSharp {
         private static StdApiResponse CreateResponse(IRestClient client, IRestResponse resp) {
             var blueprint = new StdApiResponse.Blueprint() {
                 Exception = resp.ErrorException,
-                CommStatusCode = resp.ResponseStatus.ToCommStatus(),
                 CommMessage = resp.ErrorMessage,
                 CharacterSet = null,
                 ContentBytes = resp.RawBytes,
@@ -42,7 +41,14 @@ namespace StandardApiTools.RestSharp {
                 ContentLength = resp.ContentLength,
                 HttpStatusCode = resp.StatusCode
             };
-            if ((int)resp.StatusCode < 100) blueprint.HttpStatusCode = null;
+            if ((int)resp.StatusCode > 99) {
+                blueprint.CommStatusCode = resp.ResponseStatus.ToCommStatus();
+                blueprint.HttpStatusCode = resp.StatusCode;
+            }
+            else {
+                blueprint.CommStatusCode = (StdApiResponse.CommunicationStatus)(int)resp.StatusCode;
+                blueprint.HttpStatusCode = null;
+            }
             return new StdApiResponse(blueprint);
         }
 

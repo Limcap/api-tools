@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net;
 
@@ -25,23 +27,29 @@ namespace StandardApiTools {
 
 
         public StdApiException(string message, object details = null)
-        : base(message) {
-            this.statusCode = 500;
-            this.details = details;
-            this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
-        }
+        : this(500, message, details) { }
+
+
+
+
+        public StdApiException(HttpStatusCode code, string message = null, object details = null)
+        : this((int)code, message ?? code.ToString(), details) { }
+
+
+
+
+        public StdApiException(StdApiResponse.CommunicationStatus code, string message = null, object details = null)
+        : this((int)code, message ?? code.ToString(), details) { }
 
 
 
 
         public StdApiException(int code, string message = null, object details = null)
-        : base(message ?? code.ToString()) {
-            this.statusCode = (int)code;
+        : base(message) {
+            this.statusCode = code;
             this.details = details;
             this.info = new StdApiDataCollection(new Dictionary<string, object>(3));
         }
-        public StdApiException(HttpStatusCode code, string message = null, object details = null)
-        : this((int)code, message, details){ }
 
 
 
@@ -75,6 +83,35 @@ namespace StandardApiTools {
         public StdApiErrorResult ToResult(bool includeStackTraceInfo) {
             if (includeStackTraceInfo) Info.Add("StackTrace", StackTrace);
             return base.ToResult();
+        }
+
+
+
+
+        public virtual StdApiException SourceException() {
+            //if (StatusCode != 424 || details == null) return this;
+            if (details == null) return this;
+            JObject j;
+            try {
+                string str = details as string ?? JsonConvert.SerializeObject(details);
+                j = JObject.Parse(str);
+            }
+            catch { return this; }
+            if (!j.TryGetValue("status", out _) || !j.TryGetValue("message", out _) || !j.TryGetValue("details", out _))
+                return this;
+            var s = j["status"].ToObject<int>();
+            var m = j["message"].ToString();
+            var d = j["details"].ToString();
+            var ex = new StdApiException(s, m, d);
+            if (j.TryGetValue("info", out _) && j["info"].Type == JTokenType.Array) {
+                var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(j["info"].ToString());
+                ex.info = new StdApiDataCollection(dic);
+            }
+            return ex.SourceException();
+            //string detailsStr() {
+            //    try { return JsonConvert.SerializeObject(details); }
+            //    catch { return str; }
+            //}
         }
 
 

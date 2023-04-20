@@ -54,14 +54,16 @@ namespace StandardApiTools {
 
 
         public static StdApiException AddJsonContent(this HttpWebRequest req, object data, Encoding charset = null) {
-            if (data is string s) return AddStringContent(req, s, charset);
+            if (data is string s) {
+                return AddContent(req, "application/json", s, charset);
+            }
             try {
                 JsonSerializerSettings settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                 var str = JsonConvert.SerializeObject(data, settings);
                 return AddContent(req, "application/json", str, charset);
             }
+            catch (StdApiException) { throw; }
             catch (Exception ex) {
-                //return ex;
                 return StdApiException.CreateFrom(ex, "Ocorreu um erro ao adicionar o conteúdo da requisição");
             }
         }
@@ -93,6 +95,20 @@ namespace StandardApiTools {
             }
             catch (Exception ex) {
                 //return ex;
+                return StdApiException.CreateFrom(ex, "Ocorreu um erro ao adicionar o conteúdo da requisição");
+            }
+        }
+
+
+
+
+        public static StdApiException AddContent(this HttpWebRequest req, string contentType, byte[] bytes, Encoding charset = null) {
+            try {
+                req.ContentType = charset == null ? contentType : $"{contentType}; charset=" + charset.WebName;
+                using (var s = req.GetRequestStream()) s.Write(bytes, 0, bytes.Length);
+                return null;
+            }
+            catch (Exception ex) {
                 return StdApiException.CreateFrom(ex, "Ocorreu um erro ao adicionar o conteúdo da requisição");
             }
         }

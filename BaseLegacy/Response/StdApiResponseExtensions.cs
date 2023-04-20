@@ -25,5 +25,11 @@ namespace StandardApiTools
         {
             return (StdApiResponse.CommunicationStatus)(int)wss;
         }
+
+
+
+        public static StdApiResponse.CommunicationStatus ToCommStatus(System.Net.HttpStatusCode code) {
+            return (StdApiResponse.CommunicationStatus)(int)code;
+        }
     }
 }

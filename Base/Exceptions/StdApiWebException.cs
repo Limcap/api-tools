@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.Net;
-using System.Text.Json;
 using System.Threading.Tasks;
+using CommStatus = StandardApiTools.StdApiResponse.CommunicationStatus;
 
 namespace StandardApiTools {
     public partial class StdApiWebException: StdApiException {
@@ -11,11 +14,16 @@ namespace StandardApiTools {
         /// só deve ser criado uma exceção se a resposta for de erro.
         /// <seealso cref="From(StdApiResponse, string)"/>
         /// </summary>
-        public StdApiWebException(StdApiResponse response)
+        public StdApiWebException(StdApiResponse response, bool unwrapped = false)
         : base(response.Exception) {
             Response = response;
+            statusCode = (int)HttpStatusCode.FailedDependency;
             this.AddMessage(_defaultMsg);
             DetailsDeserializer = DefaultDetailsDeserializer;
+            if (unwrapped) {
+                isUnwrapped = true;
+                this.SetMessage(Response.CommMessage);
+            }
         }
 
 
@@ -26,8 +34,7 @@ namespace StandardApiTools {
 
 
 
-        public override int StatusCode
-        => statusCode > 0 ? statusCode : isUnwrapped ? Response.StatusCode : (int)HttpStatusCode.FailedDependency;
+        public override int StatusCode => isUnwrapped ? Response.StatusCode : statusCode;
 
 
 
@@ -82,15 +89,12 @@ namespace StandardApiTools {
 
 
 
-        //public StdApiWebException SetResponseContentType<T>(JsonSerializerOptions opt = null) {
         public StdApiWebException SetResponseContentType<T>() {
-            var s = Response?.ContentAsString.TrimToNull();
             var infoTitle = "Erro de desserialização";
             var infoText = "O conteúdo está apresentado no formato string, pois não foi possível desserializá-lo.";
             DetailsDeserializer = s => {
                 if (s == null || s[0] != '{' && s[0] != '[') return s;
                 try {
-                    //var result = JsonUtil.Deserialize<T>(s, opt);
                     var result = JsonUtil.Deserialize<T>(s);
                     Info.Del(infoTitle);
                     return result;
@@ -122,6 +126,57 @@ namespace StandardApiTools {
             this.SetMessage(Response.CommMessage);
             return this;
         }
+
+
+
+
+
+
+        public override StdApiException SourceException() {
+            if (StatusCode != 424) return this;
+            if (Response.CommStatus != CommStatus.Success && string.IsNullOrEmpty(Response.ContentAsString)) {
+                return new StdApiException(Response.CommStatus, Response.CommMessage, Response.ContentAsString);
+            }
+            var j = JObject.Parse(Response.ContentAsString);
+            if (!j.TryGetValue("message", out _) || !j.TryGetValue("details", out _))
+                return this;
+            var m = j["message"].ToString();
+            var d = j["details"].ToString();
+            var ex = new StdApiException(Response.StatusCode, m, d);
+            if (j.TryGetValue("info", out _) && j["info"].Type == JTokenType.Array) {
+                var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(j["info"].ToString());
+                foreach (var item in dic) ex.AddInfo(item.Key, item.Value);
+            }
+            return ex.SourceException();
+        }
+
+
+
+
+
+
+        //private class InnerData {
+        //    public int StatusCode { get; set; }
+        //    public string Message { get; set; }
+        //    public object Details { get; set; }
+        //    public Dictionary<string, object> Info { get; set; }
+        //    public InnerData(StdApiResponse resp) {
+        //        StatusCode = resp.StatusCode;
+        //        Message = resp.CommMessage;
+        //        Details = resp.ContentAsString;
+        //    }
+        //    public StdApiException ToException() {
+        //        var ex = new StdApiException(
+        //            (System.Net.HttpStatusCode)StatusCode,
+        //            Message,
+        //            Details
+        //        );
+        //        if (Info != null && Info.Count > 0)
+        //            foreach (var item in Info)
+        //                ex.Info.Add(item.Key, item.Value);
+        //        return ex;
+        //    }
+        //}
 
 
 
