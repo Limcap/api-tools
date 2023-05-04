@@ -70,7 +70,12 @@ namespace StandardApiTools {
 
         public override async Task ExecuteResultAsync(ActionContext context) {
             CompiledResultObject = Compile();
-            await base.ExecuteResultAsync(context);
+            try {
+                await base.ExecuteResultAsync(context);
+            }
+            catch (Exception ex) {
+                throw new Exception("Error when executing AspNetCore.MVC result", ex);
+            }
         }
 
 
