@@ -40,14 +40,24 @@ namespace StandardApiTools {
         /// <param name="response">Objeto fonte</param>
         /// <param name="charset">Converte o stream de bytes para string usando este charset</param>
         public static string GetContentAsString(this WebResponse response, Encoding charset = null) {
-            if (response == null) return null;
-            var encodingStr = (response as HttpWebResponse)?.ContentEncoding;
-            var encoding = encodingStr == null ? null : Encoding.GetEncoding(encodingStr);
-            encoding = charset ?? encoding;
-            var rs = response?.GetResponseStream();
-            StreamReader sr = encoding != null ? new StreamReader(rs, encoding) : new StreamReader(rs, true);
-            var data = sr.ReadToEnd();
-            return data;
+            try {
+                if (response == null) return null;
+                if(charset == null) {
+                    try {
+                        var encodingStr = (response as HttpWebResponse)?.CharacterSet;
+                        charset = string.IsNullOrEmpty(encodingStr) ? null : Encoding.GetEncoding(encodingStr);
+                    }
+                    catch (Exception ex) {}
+                }
+                var stream = response?.GetResponseStream();
+                if (stream.Position > 0) stream.Position = 0;
+                StreamReader reader = charset != null ? new StreamReader(stream, charset) : new StreamReader(stream, true);
+                var data = reader.ReadToEnd();
+                return data;
+            }
+            catch (Exception ex) {
+                return "Error while reading the data stream from the response";
+            }
         }
 
 
