@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Net.Http;
 using System.Threading;
+using System.Text;
 
 namespace StandardApiTools {
 
@@ -23,9 +24,9 @@ namespace StandardApiTools {
             }
             set {
                 if (value is HttpContent ht) Content = ht;
-                if (CompiledResultObject is string str) Content = new StringContent(str);
-                var json = JsonUtil.Serialize(value);
-                Content = new StringContent(json);
+                else if (value is string str) Content = new StringContent(str, Encoding.UTF8);
+                //if (CompiledResultObject is string str) Content = new StringContent(str);
+                else Content = new StringContent(JsonUtil.Serialize(value), Encoding.UTF8);
             }
         }
         //public new HttpContent Content 
