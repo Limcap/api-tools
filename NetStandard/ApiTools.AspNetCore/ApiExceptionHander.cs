@@ -14,7 +14,7 @@ namespace Limcap.ApiTools.AspNetCore {
 	/// <br/>2. Chamando o método estático <see cref="Handle"/> em um filtro já configurado.
 	/// </remarks>
 	/// indicadas por <see cref="ActionExecutedContext.Exception"/> e <see cref="ActionExecutedContext.ExceptionHandled"/>
-	public class ApiContextFilter : ActionFilterAttribute {
+	public class ApiExceptionHander : ActionFilterAttribute {
 
 		/// <summary>
 		/// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="EasyResponseResult(Exception)"/> caso
