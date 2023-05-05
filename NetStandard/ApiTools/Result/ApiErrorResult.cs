@@ -9,6 +9,7 @@ namespace Limcap.ApiTools {
 
 		public ApiErrorResult( int status, string message, object details = null,
 		object info = null, bool? suppressNullValues = null ) {
+			StatusCode = status;
 			Message = message;
 			Details = details;
 			Info = info;
