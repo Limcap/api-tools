@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 
-namespace Limcap.ApiTools.Http {
+namespace Limcap.ApiTools.AspNetStandard {
 	public static class Ext {
 		public static HttpResponseMessage ToHttpResponseMessage( this ApiResult result ) {
 			HttpContent content;

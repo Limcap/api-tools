@@ -4,7 +4,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Limcap.ApiTools.Mvc {
+namespace Limcap.ApiTools.AspNetCore {
 	internal class ActionResult : IActionResult {
 
 		public int StatusCode;

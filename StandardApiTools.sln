@@ -15,11 +15,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetStandard", "NetStandard"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools", "NetStandard\ApiTools\ApiTools.csproj", "{4F7DC9E9-93C9-45CE-892C-AC9826C89920}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.Mvc", "NetStandard\ApiTools.Mvc\ApiTools.Mvc.csproj", "{D84392B9-2B73-45B7-A67C-ABA9A1BC487F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.AspNetCore", "NetStandard\ApiTools.AspNetCore\ApiTools.AspNetCore.csproj", "{D84392B9-2B73-45B7-A67C-ABA9A1BC487F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.Http", "NetStandard\ApiTools.Http\ApiTools.Http.csproj", "{6538FFB6-B0F9-4E7A-B88D-B0897CF66348}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.AspNetStandard", "NetStandard\ApiTools.AspNetStandard\ApiTools.AspNetStandard.csproj", "{6538FFB6-B0F9-4E7A-B88D-B0897CF66348}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiTools.RestSharp", "NetStandard\ApiTools.RestSharp\ApiTools.RestSharp.csproj", "{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.RestSharp", "NetStandard\ApiTools.RestSharp\ApiTools.RestSharp.csproj", "{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

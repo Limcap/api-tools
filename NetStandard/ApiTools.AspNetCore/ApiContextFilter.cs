@@ -1,9 +1,8 @@
-﻿using Limcap.ApiTools;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Net;
 
-namespace Limcap.ApiTools.Mvc {
+namespace Limcap.ApiTools.AspNetCore {
 
 	/// <summary>
 	/// Filtro de execução de contexto que converte criar um <see cref="ApiErrorResult"/>
@@ -15,7 +14,7 @@ namespace Limcap.ApiTools.Mvc {
 	/// <br/>2. Chamando o método estático <see cref="Handle"/> em um filtro já configurado.
 	/// </remarks>
 	/// indicadas por <see cref="ActionExecutedContext.Exception"/> e <see cref="ActionExecutedContext.ExceptionHandled"/>
-	public class StdApiContextFilter : ActionFilterAttribute {
+	public class ApiContextFilter : ActionFilterAttribute {
 
 		/// <summary>
 		/// Define o <see cref="ActionExecutedContext.Result"/> como um <see cref="EasyResponseResult(Exception)"/> caso

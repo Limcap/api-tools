@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Limcap.ApiTools.Http</AssemblyName>
-    <RootNamespace>Limcap.ApiTools.Http</RootNamespace>
+    <RootNamespace>Limcap.ApiTools.AspNetCore</RootNamespace>
+    <AssemblyName>Limcap.ApiTools.AspNetCore</AssemblyName>
 		<Version>0.20.0.0</Version>
   </PropertyGroup>
 
 	<PropertyGroup>
-		<Title>Limcap's API Tools Extension for Net.Http</Title>
-		<Description>Extension to create HttpResponseMessage from ApiResult</Description>
+		<Title>Limcap's API Tools Extension for AspNetCore.Mvc</Title>
+		<Description>Extension to create IActionResult from ApiResult</Description>
 		<Authors>Limcap</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -28,12 +28,13 @@
 		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Json" Version="1.0.0" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\ApiTools\ApiTools.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ApiTools\ApiTools.csproj" />
+  </ItemGroup>
 
 </Project>
