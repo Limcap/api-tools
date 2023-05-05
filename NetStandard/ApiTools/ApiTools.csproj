@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Limcap.ApiTools</AssemblyName>
+    <RootNamespace>Limcap.ApiTools</RootNamespace>
+		<Version>0.20.0.0</Version>
+  </PropertyGroup>
+
+	<PropertyGroup>
+		<Title>Limcap API Tools</Title>
+		<Description>Smartly crafted tools that automates and simplifies the cumbersome details when handling results and errors of an API</Description>
+		<Authors>Limcap</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<Company>$(Authors)</Company>
+		<PackageId>$(Company).$(AssemblyName)</PackageId>
+		<Product>$(Company).$(AssemblyName)</Product>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/Limcap/LightValidator</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>API; api</PackageTags>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+		<AssemblyName>$(Company).$(MSBuildProjectName)</AssemblyName>
+		<NeutralLanguage>en</NeutralLanguage>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.1" />
+  </ItemGroup>
+
+</Project>

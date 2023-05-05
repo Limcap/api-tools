@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.3.32811.315
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.33423.256
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandardApiTools", "Base\StandardApiTools.csproj", "{CC71BB26-804C-4048-AA6A-B81F11CEF3CD}"
 EndProject
@@ -10,6 +10,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandardApiTools.Legacy", "BaseLegacy\StandardApiTools.Legacy.csproj", "{18B6C056-7A89-429C-9B47-4CDA65315F36}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandardApiTools.Legacy.RestSharp", "StandardApiTools.Legacy.RestSharp\StandardApiTools.Legacy.RestSharp.csproj", "{4F373A6C-9556-4F39-A3B8-381DCAA04E81}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetStandard", "NetStandard", "{2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools", "NetStandard\ApiTools\ApiTools.csproj", "{4F7DC9E9-93C9-45CE-892C-AC9826C89920}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.Mvc", "NetStandard\ApiTools.Mvc\ApiTools.Mvc.csproj", "{D84392B9-2B73-45B7-A67C-ABA9A1BC487F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.Http", "NetStandard\ApiTools.Http\ApiTools.Http.csproj", "{6538FFB6-B0F9-4E7A-B88D-B0897CF66348}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiTools.RestSharp", "NetStandard\ApiTools.RestSharp\ApiTools.RestSharp.csproj", "{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,9 +43,31 @@ Global
 		{4F373A6C-9556-4F39-A3B8-381DCAA04E81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F373A6C-9556-4F39-A3B8-381DCAA04E81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F373A6C-9556-4F39-A3B8-381DCAA04E81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F7DC9E9-93C9-45CE-892C-AC9826C89920}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F7DC9E9-93C9-45CE-892C-AC9826C89920}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F7DC9E9-93C9-45CE-892C-AC9826C89920}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F7DC9E9-93C9-45CE-892C-AC9826C89920}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D84392B9-2B73-45B7-A67C-ABA9A1BC487F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D84392B9-2B73-45B7-A67C-ABA9A1BC487F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D84392B9-2B73-45B7-A67C-ABA9A1BC487F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D84392B9-2B73-45B7-A67C-ABA9A1BC487F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6538FFB6-B0F9-4E7A-B88D-B0897CF66348}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6538FFB6-B0F9-4E7A-B88D-B0897CF66348}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6538FFB6-B0F9-4E7A-B88D-B0897CF66348}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6538FFB6-B0F9-4E7A-B88D-B0897CF66348}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4F7DC9E9-93C9-45CE-892C-AC9826C89920} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
+		{D84392B9-2B73-45B7-A67C-ABA9A1BC487F} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
+		{6538FFB6-B0F9-4E7A-B88D-B0897CF66348} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
+		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5AB4B109-B0E6-418A-9A5C-25BDE02B9093}

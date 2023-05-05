@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Limcap.ApiTools.Mvc</RootNamespace>
+    <AssemblyName>Limcap.ApiTools.Mvc</AssemblyName>
+		<Version>0.20.0.0</Version>
+  </PropertyGroup>
+
+	<PropertyGroup>
+		<Title>Limcap's API Tools Extension for AspNetCore.Mvc</Title>
+		<Description>Extension to create IActionResult from ApiResult</Description>
+		<Authors>Limcap</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<Company>$(Authors)</Company>
+		<PackageId>$(Company).$(AssemblyName)</PackageId>
+		<Product>$(Company).$(AssemblyName)</Product>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/Limcap/LightValidator</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>API; api</PackageTags>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+		<AssemblyName>$(Company).$(MSBuildProjectName)</AssemblyName>
+		<NeutralLanguage>en</NeutralLanguage>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Json" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApiTools\ApiTools.csproj" />
+  </ItemGroup>
+
+</Project>
