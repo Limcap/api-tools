@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.AspNetStandard", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiTools.RestSharp", "NetStandard\ApiTools.RestSharp\ApiTools.RestSharp.csproj", "{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiTools.AspNetLegacy", "NetStandard\ApiTools.AspNetLegacy\ApiTools.AspNetLegacy.csproj", "{E00612D2-4A38-47D9-B9CF-5A66CBCAE3B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E00612D2-4A38-47D9-B9CF-5A66CBCAE3B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E00612D2-4A38-47D9-B9CF-5A66CBCAE3B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E00612D2-4A38-47D9-B9CF-5A66CBCAE3B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E00612D2-4A38-47D9-B9CF-5A66CBCAE3B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,6 +74,7 @@ Global
 		{D84392B9-2B73-45B7-A67C-ABA9A1BC487F} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
 		{6538FFB6-B0F9-4E7A-B88D-B0897CF66348} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
 		{09CCB5F8-79F3-4572-924F-FF6EC1D4BCC6} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
+		{E00612D2-4A38-47D9-B9CF-5A66CBCAE3B0} = {2D6FEFDD-1EC6-43CD-9443-AE2A2D80A8BB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5AB4B109-B0E6-418A-9A5C-25BDE02B9093}
