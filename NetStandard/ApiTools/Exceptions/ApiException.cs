@@ -19,7 +19,11 @@ namespace Limcap.ApiTools {
 		protected ApiException( Exception sourceException, string message = null )
 		: base(message ?? Status500DefaultMessage, sourceException) {
 			this.statusCode = 500;
-			this.details = sourceException.ToString();
+			//this.details = sourceException.ToString();
+			this.details = new {
+				Exception = sourceException.GetType().Name,
+				sourceException.Message
+			};
 			this.info = new DataCollection(new Dictionary<string, object>(3));
 		}
 
@@ -79,8 +83,8 @@ namespace Limcap.ApiTools {
 
 
 
-		public ApiErrorResult ToResult( bool includeStackTraceInfo ) {
-			if (includeStackTraceInfo) Info.Add("StackTrace", StackTrace);
+		public ApiErrorResult ToResult( bool includeFullStackTrace ) {
+			if (includeFullStackTrace) Info.Add("StackTrace", ToString());
 			return base.ToResult();
 		}
 
@@ -128,6 +132,6 @@ namespace Limcap.ApiTools {
 
 
 
-		private static string Status500DefaultMessage = "Ocorreu um erro não identificado durante o processamento.";
+		private static string Status500DefaultMessage = "Ocorreu um erro.";
 	}
 }
