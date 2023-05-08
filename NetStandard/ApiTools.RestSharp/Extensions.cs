@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 namespace Limcap.ApiTools.RestSharp {
 	public static class Extensions {
 
-		public static async Task<StdResponse> GetApiResponseAsync( this IRestClient client, IRestRequest req ) {
+		public static async Task<StdResponse> GetStdResponseAsync( this IRestClient client, IRestRequest req ) {
 			var resp = await client.ExecuteAsync(req);
 			return CreateResponse(client, resp);
 		}
 
 
 
-		public static StdResponse GetApiResponse( this IRestClient client, IRestRequest req ) {
+		public static StdResponse GetStdResponse( this IRestClient client, IRestRequest req ) {
 			var resp = client.Execute(req);
 			return CreateResponse(client, resp);
 		}
