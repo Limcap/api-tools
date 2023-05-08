@@ -8,8 +8,8 @@
   </PropertyGroup>
 
 	<PropertyGroup>
-		<Title>Limcap's API Tools Extension for RestSharp</Title>
-		<Description>Extension to use API Tools with RestSharp requests</Description>
+		<Title>Limcap API Tools add-on for RestSharp</Title>
+		<Description>Makes RestSharp requests compatible with ApiTools responses</Description>
 		<Authors>Limcap</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>

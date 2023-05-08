@@ -30,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Limcap.ApiTools.AspNetLegacy.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApiExceptionHandlerAttribute.cs" />
@@ -60,6 +61,11 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="nug\ApiTools.AspNetLegacy.nupkg.create.cmd" />
+    <None Include="nug\ApiTools.AspNetLegacy.nuspec" />
+    <None Include="nug\README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
