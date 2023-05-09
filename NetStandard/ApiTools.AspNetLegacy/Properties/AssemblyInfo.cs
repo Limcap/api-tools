@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Add-on for Limcap API Tools (Net Framework 4.6.1+)")]
-[assembly: AssemblyDescription("Includes action filters for controllers (Mvc and WebApi)")]
+[assembly: AssemblyTitle("Limcap API Tools add-on for .NET Framework 4.6.1+")]
+[assembly: AssemblyDescription("Tools for handling results using System.Web.Mvc and System.Web.Http")]
 [assembly: AssemblyCompany("Limcap")]
 [assembly: AssemblyProduct("Limcap.ApiTools.AspNetLegacy")]
 [assembly: AssemblyCopyright("Copyright ©  2023")]
@@ -34,4 +34,4 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.20.0.0")]
+[assembly: AssemblyVersion("0.24.0.0")]
