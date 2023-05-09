@@ -68,7 +68,7 @@ namespace Limcap.ApiTools {
 
 		private object CompileDetails() {
 			if (isUnwrapped) return DetailsDeserializer(Response.ContentAsString);
-			else return new StdApiWebExceptionDetails {
+			else return new ApiWebExceptionDetails {
 				Status = Response.HttpStatus != null
 							? (int)Response.HttpStatus
 							: (int)Response.CommStatus,
@@ -270,8 +270,8 @@ namespace Limcap.ApiTools {
 
 
 
-	public class StdApiWebExceptionDetails : StdApiWebExceptionDetails<object> { }
-	public class StdApiWebExceptionDetails<T> {
+	public class ApiWebExceptionDetails : ApiWebExceptionDetails<object> { }
+	public class ApiWebExceptionDetails<T> {
 		public int Status { get; set; }
 		public string Message { get; set; }
 		public T Details { get; set; }
