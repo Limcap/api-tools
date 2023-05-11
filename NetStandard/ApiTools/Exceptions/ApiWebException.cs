@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -136,17 +137,31 @@ namespace Limcap.ApiTools {
 			if (Response.CommStatus != CommunicationStatus.Success && string.IsNullOrEmpty(Response.ContentAsString)) {
 				return new ApiException(Response.CommStatus, Response.CommMessage, Response.ContentAsString);
 			}
-			var j = JObject.Parse(Response.ContentAsString);
-			if (!j.TryGetValue("message", out _) || !j.TryGetValue("details", out _))
-				return this;
-			var m = j["message"].ToString();
-			var d = j["details"].ToString();
-			var ex = new ApiException(Response.StatusCode, m, d);
-			if (j.TryGetValue("info", out _) && j["info"].Type == JTokenType.Array) {
-				var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(j["info"].ToString());
-				foreach (var item in dic) ex.AddInfo(item.Key, item.Value);
+			try {
+				var j = JObject.Parse(Response.ContentAsString);
+				if (!j.TryGetValue("message", out _) || !j.TryGetValue("details", out _))
+					return this;
+				var m = j["message"].ToString();
+				var d = j["details"].ToString();
+				var ex = new ApiException(Response.StatusCode, m, d);
+				if (j.TryGetValue("info", out _) && j["info"].Type == JTokenType.Array) {
+					var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(j["info"].ToString());
+					foreach (var item in dic) ex.AddInfo(item.Key, item.Value);
+				}
+				return ex.SourceException();
 			}
-			return ex.SourceException();
+			catch (Exception ex2) {
+				Debug.WriteLine(ex2.Message);
+				// O status sempre será 424 por causa do if do inicio do método, mas se não
+				// houvesse o if seria necessario verificar isso aqui antes de executar abaixo.
+				details = details ?? new ApiWebExceptionDetails<string> {
+					Status = Response.StatusCode,
+					Message = Response.HttpStatus?.ToString() ?? Response.CommMessage,
+					Details = Response.ContentAsString,
+					Uri = Response.RequestUri
+				};
+				return this;
+			}
 		}
 
 
