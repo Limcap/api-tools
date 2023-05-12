@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Limcap.ApiTools.AspNetCore</RootNamespace>
     <AssemblyName>Limcap.ApiTools.AspNetCore</AssemblyName>
-		<Version>0.24.0.0</Version>
+		<Version>0.24.4.0</Version>
   </PropertyGroup>
 
 	<PropertyGroup>
