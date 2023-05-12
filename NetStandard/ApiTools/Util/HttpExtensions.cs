@@ -14,7 +14,8 @@ namespace Limcap.ApiTools {
 		/// <param name="req"></param>
 		/// <param name="uri"></param>
 		public static void NoProxyForLocal( this HttpWebRequest req, string uri ) {
-			req.Proxy = new WebProxy(WebRequest.DefaultWebProxy.GetProxy(new Uri(uri)), true);
+			if(WebRequest.DefaultWebProxy == null) req.Proxy = null;
+			else req.Proxy = new WebProxy(WebRequest.DefaultWebProxy.GetProxy(new Uri(uri)), true);
 			//req.Proxy = new WebProxy(HttpClient.DefaultProxy.GetProxy(new Uri(uri)), true);
 		}
 
