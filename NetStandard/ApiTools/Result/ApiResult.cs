@@ -12,17 +12,19 @@ namespace Limcap.ApiTools {
 
 		protected ApiResult() { }
 
-		public ApiResult( HttpStatusCode status, object content ) {
-			StatusCode = (int)status;
-			CompiledResultObject = content;
+		public ApiResult(HttpStatusCode status, object content) {
+			_StatusCode = (int)status;
+			_CompiledResultObject = content;
 		}
 
-		public ApiResult( int statusCode, object content ) {
-			StatusCode = statusCode;
-			CompiledResultObject = content;
+		public ApiResult(int statusCode, object content) {
+			_StatusCode = statusCode;
+			_CompiledResultObject = content;
 		}
 
-		public virtual int StatusCode { get; protected set; }
-		public virtual object CompiledResultObject { get; protected set; }
+		protected int _StatusCode;
+		public virtual int GetStatusCode() => _StatusCode;
+		protected object _CompiledResultObject;
+		public virtual object GetCompiledResultObject() => _CompiledResultObject;
 	}
 }
