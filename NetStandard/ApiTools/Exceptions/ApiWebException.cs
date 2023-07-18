@@ -14,7 +14,7 @@ namespace Limcap.ApiTools {
 		/// só deve ser criado uma exceção se a resposta for de erro.
 		/// <seealso cref="From(StdResponse, string)"/>
 		/// </summary>
-		public ApiWebException( StdResponse response, bool unwrapped = false )
+		public ApiWebException(StdResponse response, bool unwrapped = false)
 		: base(response.Exception) {
 			Response = response;
 			statusCode = 424;
@@ -40,7 +40,7 @@ namespace Limcap.ApiTools {
 
 
 
-		public new ApiWebException SetStatus( HttpStatusCode status ) {
+		public new ApiWebException SetStatus(HttpStatusCode status) {
 			statusCode = (int)status;
 			return this;
 		}
@@ -55,7 +55,7 @@ namespace Limcap.ApiTools {
 
 
 
-		public new ApiWebException SetDetails( object details ) {
+		public new ApiWebException SetDetails(object details) {
 			this.details = details;
 			return this;
 		}
@@ -115,7 +115,7 @@ namespace Limcap.ApiTools {
 
 
 
-		public ApiWebException UnwrapStatus( int status ) {
+		public ApiWebException UnwrapStatus(int status) {
 			if (Response.StatusCode != status) return null;
 			isUnwrapped = true;
 			this.SetMessage(Response.CommMessage);
@@ -130,7 +130,7 @@ namespace Limcap.ApiTools {
 
 
 
-		
+
 
 		public override ApiException SourceException() {
 			if (StatusCode != 424) return this;
@@ -198,7 +198,7 @@ namespace Limcap.ApiTools {
 		#region ============================================================================
 		#endregion
 
-		public static R Handle<R>( Func<R> function, Action<ApiWebException> exceptionCusomization ) {
+		public static R Handle<R>(Func<R> function, Action<ApiWebException> exceptionCusomization) {
 			try {
 				return function();
 			}
@@ -210,7 +210,7 @@ namespace Limcap.ApiTools {
 
 
 
-		public static void Handle<E>( Action function, Action<ApiWebException> exceptionCusomization ) {
+		public static void Handle<E>(Action function, Action<ApiWebException> exceptionCusomization) {
 			try {
 				function();
 			}
@@ -223,7 +223,7 @@ namespace Limcap.ApiTools {
 
 
 
-		public static async Task<R> HandleAsync<R>( Func<Task<R>> function, Action<ApiWebException> exceptionCusomization ) {
+		public static async Task<R> HandleAsync<R>(Func<Task<R>> function, Action<ApiWebException> exceptionCusomization) {
 			try {
 				return await function();
 			}
@@ -236,7 +236,7 @@ namespace Limcap.ApiTools {
 
 
 
-		public static async Task HandleAsync<E>( Func<Task> function, Action<ApiWebException> exceptionCusomization ) {
+		public static async Task HandleAsync<E>(Func<Task> function, Action<ApiWebException> exceptionCusomization) {
 			try {
 				await function();
 			}
@@ -259,7 +259,7 @@ namespace Limcap.ApiTools {
 		/// de uma <see cref="StdResponse"/> cujo <see cref="StdResponse.CommStatus"/> seja
 		/// <see cref="StdResponse.CommunicationStatus.Success"/>
 		/// </summary>
-		public static ApiWebException From( StdResponse response ) {
+		public static ApiWebException From(StdResponse response) {
 			if (response.IsSuccess) return null;
 			var ex = new ApiWebException(response);
 			return ex;
@@ -273,7 +273,7 @@ namespace Limcap.ApiTools {
 
 
 
-		public static ApiException CreateManually( object details ) {
+		public static ApiException CreateManually(object details) {
 			return new ApiException(424, _defaultMsg, details);
 		}
 	}

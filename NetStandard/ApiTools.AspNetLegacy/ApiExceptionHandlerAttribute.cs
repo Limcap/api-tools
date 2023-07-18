@@ -26,9 +26,9 @@ namespace Limcap.ApiTools.AspNetLegacy.MvcFilters {
 			}
 			else {
 				var result = ApiException.From(context.Exception).ToResult();
-				var content = JsonConvert.SerializeObject(result.CompiledResultObject);
+				var content = JsonConvert.SerializeObject(result.GetCompiledResultObject());
 				var r = context.HttpContext.Response;
-				r.StatusCode = result.StatusCode;
+				r.StatusCode = result.GetStatusCode();
 				r.ContentType = "application/json";
 				r.Write(content);
 				context.ExceptionHandled = true;
